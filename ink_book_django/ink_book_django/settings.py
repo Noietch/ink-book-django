@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'ink_book_django.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ink_book',
+        'HOST': '121.5.31.11',
+        'PORT': 3306,
+        'USER': 'root',
+        'PASSWORD': 'password'
     }
 }
 
