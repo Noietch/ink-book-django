@@ -97,6 +97,11 @@ class ProjectListAPIView(ListAPIView):
     model = Project
     serializer = ProjectModelSerializer
 
+
+class ProjectDetailAPIView(DetailAPIView):
+    model = Project
+    serializer = ProjectModelSerializer
+
     def patch(self, request, pk):
         try:
             project = Project.objects.get(id=pk)
@@ -117,11 +122,6 @@ class ProjectListAPIView(ListAPIView):
         return Response(res)
 
 
-class ProjectDetailAPIView(DetailAPIView):
-    model = Project
-    serializer = ProjectModelSerializer
-
-
 class PrototypeListAPIView(ListAPIView):
     model = Prototype
     serializer = PrototypeModelSerializer
@@ -130,6 +130,16 @@ class PrototypeListAPIView(ListAPIView):
 class PrototypeDetailAPIView(DetailAPIView):
     model = Prototype
     serializer = PrototypeModelSerializer
+
+
+class UMLListAPIView(ListAPIView):
+    model = UML
+    serializer = UMLModelSerializer
+
+
+class UMLDetailAPIView(DetailAPIView):
+    model = UML
+    serializer = UMLModelSerializer
 
 
 class DocumentListAPIView(ListAPIView):
