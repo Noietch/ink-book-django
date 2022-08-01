@@ -5,6 +5,7 @@ from django.db import models
 
 class Project(models.Model):
     name = models.CharField(max_length=255)
+    team = models.IntegerField()
 
     class Meta:
         verbose_name = "项目"
@@ -24,6 +25,7 @@ class Prototype(models.Model):
 class UML(models.Model):
     name = models.CharField(max_length=255)
     route = models.CharField(max_length=255)
+    project = models.IntegerField()
 
     class Meta:
         verbose_name = "UML图"
@@ -33,6 +35,7 @@ class UML(models.Model):
 class Document(models.Model):
     name = models.CharField(max_length=255)
     route = models.CharField(max_length=255)
+    project = models.IntegerField()
 
     class Meta:
         verbose_name = "文档"
