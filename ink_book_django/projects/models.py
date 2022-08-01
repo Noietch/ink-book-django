@@ -14,6 +14,7 @@ class Project(models.Model):
 class Prototype(models.Model):
     name = models.CharField(max_length=255)
     route = models.CharField(max_length=255)
+    project = models.IntegerField()
 
     class Meta:
         verbose_name = "设计原型"
