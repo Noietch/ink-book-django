@@ -1,5 +1,5 @@
 """
-WSGI config for ink_book_django project.
+WSGI config for ink_book_django projects.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
