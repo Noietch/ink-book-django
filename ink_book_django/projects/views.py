@@ -97,6 +97,25 @@ class ProjectListAPIView(ListAPIView):
     model = Project
     serializer = ProjectModelSerializer
 
+    def patch(self, request, pk):
+        try:
+            project = Project.objects.get(id=pk)
+        except Project.DoesNotExist:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
+
+        project.name = request.data['name']
+        serializer = ProjectModelSerializer(instance=project)
+        res = {
+            'code': 1001,
+            'msg': '修改成功',
+            'data': serializer.data
+        }
+        return Response(res)
+
 
 class ProjectDetailAPIView(DetailAPIView):
     model = Project
