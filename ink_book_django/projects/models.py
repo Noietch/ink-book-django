@@ -1,11 +1,11 @@
 from django.db import models
 
+
 # Create your models here.
-
-
 class Project(models.Model):
     name = models.CharField(max_length=255)
-    team_id = models.IntegerField()
+    team_id = models.IntegerField(default=0)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "项目"
@@ -15,7 +15,8 @@ class Project(models.Model):
 class Prototype(models.Model):
     name = models.CharField(max_length=255)
     route = models.CharField(max_length=255)
-    project_id = models.IntegerField()
+    project_id = models.IntegerField(default=0)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "设计原型"
@@ -25,7 +26,8 @@ class Prototype(models.Model):
 class UML(models.Model):
     name = models.CharField(max_length=255)
     route = models.CharField(max_length=255)
-    project_id = models.IntegerField()
+    project_id = models.IntegerField(default=0)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "UML图"
@@ -35,7 +37,8 @@ class UML(models.Model):
 class Document(models.Model):
     name = models.CharField(max_length=255)
     route = models.CharField(max_length=255)
-    project_id = models.IntegerField()
+    project_id = models.IntegerField(default=0)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "文档"
