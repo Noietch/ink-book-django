@@ -1,5 +1,5 @@
 import utils.html_content as email_content
-from extensions.jwt_auth import create_token
+from .extensions.jwt_auth import create_token
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
