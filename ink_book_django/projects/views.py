@@ -19,7 +19,7 @@ class ListAPIView(APIView):
         res = {
             'code': 1001,
             'msg': '查询成功',
-            'data': [serializer1.data, serializer2.date]
+            'data': [serializer1.data, serializer2.data]
         }
         return Response(res)
 
@@ -50,6 +50,7 @@ class DetailAPIView(APIView):
             obj = self.model.objects.get(id=pk)
         except self.model.DoesNotExist:
             raise Http404
+        return obj
 
     def get(self, request, pk):
         obj = self.get_object(pk)
@@ -75,7 +76,7 @@ class DetailAPIView(APIView):
             }
         else:
             res = {
-                'code': 1003,
+                'code': 1002,
                 'msg': '修改失败',
                 'data': serializer.data
             }
@@ -94,7 +95,7 @@ class DetailAPIView(APIView):
             }
         else:
             res = {
-                'code': 1003,
+                'code': 1002,
                 'msg': '修改失败',
                 'data': serializer.data
             }
@@ -102,18 +103,35 @@ class DetailAPIView(APIView):
 
     def delete(self, request, pk):
         obj = self.get_object(pk)
-        if obj is None:
-            return Response({
-                'code': 1002,
-                'msg': '对象不存在',
-                'data': None
-            })
 
         obj.is_deleted = True
+        obj.save()
         res = {
             'code': 1001,
             'msg': '删除成功',
             'data': None
+        }
+        return Response(res)
+
+    def post(self, request, pk):
+        objects = self.model.objects.filter(team_id=pk)
+        serializer = self.serializer(objects, many=True)
+        res = {
+            'code': 1001,
+            'msg': '查询成功',
+            'data': serializer.data
+        }
+        return Response(res)
+
+
+class SubDetailAPIView(DetailAPIView):
+    def post(self, request, pk):
+        objects = self.model.objects.filter(project_id=pk)
+        serializer = self.serializer(objects, many=True)
+        res = {
+            'code': 1001,
+            'msg': '查询成功',
+            'data': serializer.data
         }
         return Response(res)
 
@@ -133,7 +151,7 @@ class PrototypeListAPIView(ListAPIView):
     serializer = PrototypeModelSerializer
 
 
-class PrototypeDetailAPIView(DetailAPIView):
+class PrototypeDetailAPIView(SubDetailAPIView):
     model = Prototype
     serializer = PrototypeModelSerializer
 
@@ -143,7 +161,7 @@ class UMLListAPIView(ListAPIView):
     serializer = UMLModelSerializer
 
 
-class UMLDetailAPIView(DetailAPIView):
+class UMLDetailAPIView(SubDetailAPIView):
     model = UML
     serializer = UMLModelSerializer
 
@@ -153,6 +171,6 @@ class DocumentListAPIView(ListAPIView):
     serializer = DocumentModelSerializer
 
 
-class DocumentDetailAPIView(DetailAPIView):
+class DocumentDetailAPIView(SubDetailAPIView):
     model = Document
     serializer = DocumentModelSerializer
