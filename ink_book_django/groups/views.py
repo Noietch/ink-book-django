@@ -3,10 +3,14 @@ from rest_framework.response import Response
 from .serializers import *
 
 
+class GroupList(APIView):
+    def post(self,request):
+        serializer = GroupsSerializer(request.data)
+
+
 class GroupsRelationsList(APIView):
     def post(self,request):
         serializer = GroupsSerializer(request.data)
-        serializer.save()
         if serializer.is_valid():
             serializer.save()
             return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
