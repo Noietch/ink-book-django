@@ -70,7 +70,6 @@ class UserLogin(APIView):
             return Response({'code': 1003, 'msg': '用户不存在', 'data': ''})
         cur_user = authenticate(username=email, password=password)
         res = {'id':serializer.data.get('id')}
-        print(res)
         if cur_user is not None:
             return Response({'code': 1001, 'msg': '登陆成功', 'data': create_token(res)})
         else:

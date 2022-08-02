@@ -8,7 +8,7 @@ import datetime
 
 class JwtAuthentication(BaseAuthentication):
     def authenticate(self, request):
-        token = request.query_params.get("token")
+        token = request.META.get("HTTP_TOKEN")
         try:
             msg = jwt.decode(token, SECRET_KEY, algorithms="HS256")
             return msg, token
