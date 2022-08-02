@@ -33,3 +33,4 @@ def create_token(payload, timeout=1440):
 if __name__ == '__main__':
     h = create_token({"username":"123123"})
     msg = jwt.decode(h, SECRET_KEY, algorithms="HS256")
+    
