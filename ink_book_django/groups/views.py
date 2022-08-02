@@ -5,7 +5,7 @@ from users.serializers import UserSerializer
 from django.http import Http404
 from utils.secret import *
 from users.models import *
-
+from django.db.models import Q
 
 class GroupList(APIView):
     def get(self, request):
@@ -19,6 +19,17 @@ class GroupList(APIView):
             serializer.save()
             return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
         return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
+
+
+class UserGroup(APIView):
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        groups_relations = GroupsRelations.objects.filter(user_id__exact=user_id)
+        res = []
+        for relation in groups_relations:
+            serializer = GroupsSerializer(Groups.objects.get(pk=relation.group_id))
+            res.append(serializer.data)
+        return Response({'code': 1001, 'msg': '查询成功', 'data': res})
 
 
 class GroupDetail(APIView):
@@ -49,6 +60,13 @@ class GroupsRelationsList(APIView):
         return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
 
     def post(self, request):
+        user_id = request.data.get('user_id')
+        group_id = request.data.get('group_id')
+        relations = GroupsRelations.objects.filter(Q(user_id__exact=user_id) & Q(group_id__exact=group_id))
+        print(relations)
+        if relations.exists():
+            return Response({'code': 1002, 'msg': '已加入该团队', 'data': ''})
+
         serializer = GroupsRelationsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
