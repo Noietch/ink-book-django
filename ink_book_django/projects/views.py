@@ -114,24 +114,28 @@ class DetailAPIView(APIView):
         return Response(res)
 
     def post(self, request, pk):
-        objects = self.model.objects.filter(team_id=pk)
-        serializer = self.serializer(objects, many=True)
+        objects1 = self.model.objects.filter(team_id=pk, is_deleted=False)
+        serializer1 = self.serializer(objects1, many=True)
+        objects2 = self.model.objects.filter(team_id=pk, is_deleted=True)
+        serializer2 = self.serializer(objects2, many=True)
         res = {
             'code': 1001,
             'msg': '查询成功',
-            'data': serializer.data
+            'data': [serializer1.data, serializer2.data]
         }
         return Response(res)
 
 
 class SubDetailAPIView(DetailAPIView):
     def post(self, request, pk):
-        objects = self.model.objects.filter(project_id=pk)
-        serializer = self.serializer(objects, many=True)
+        objects1 = self.model.objects.filter(project_id=pk, is_deleted=False)
+        serializer1 = self.serializer(objects1, many=True)
+        objects2 = self.model.objects.filter(project_id=pk, is_deleted=True)
+        serializer2 = self.serializer(objects2, many=True)
         res = {
             'code': 1001,
             'msg': '查询成功',
-            'data': serializer.data
+            'data': [serializer1.data, serializer2.data]
         }
         return Response(res)
 
