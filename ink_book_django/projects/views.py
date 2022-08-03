@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.http import Http404
 
 from .models import *
 from .serializers import *
@@ -11,12 +12,14 @@ class ListAPIView(APIView):
     serializer = None
 
     def get(self, request):
-        objects = self.model.objects.all()
-        serializer = self.serializer(objects, many=True)
+        objects1 = self.model.objects.filter(is_deleted=False)
+        serializer1 = self.serializer(objects1, many=True)
+        objects2 = self.model.objects.filter(is_deleted=True)
+        serializer2 = self.serializer(objects2, many=True)
         res = {
             'code': 1001,
             'msg': '查询成功',
-            'data': serializer.data
+            'data': [serializer1.data, serializer2.date]
         }
         return Response(res)
 
@@ -46,17 +49,10 @@ class DetailAPIView(APIView):
         try:
             obj = self.model.objects.get(id=pk)
         except self.model.DoesNotExist:
-            return None
-        return obj
+            raise Http404
 
     def get(self, request, pk):
         obj = self.get_object(pk)
-        if obj is None:
-            return Response({
-                'code': 1002,
-                'msg': '对象不存在',
-                'data': None
-            })
 
         serializer = self.serializer(obj)
         res = {
@@ -68,12 +64,6 @@ class DetailAPIView(APIView):
 
     def put(self, request, pk):
         obj = self.get_object(pk)
-        if obj is None:
-            return Response({
-                'code': 1002,
-                'msg': '对象不存在',
-                'data': None
-            })
 
         serializer = self.serializer(obj, data=request.data)
         if serializer.is_valid():
@@ -93,12 +83,6 @@ class DetailAPIView(APIView):
 
     def patch(self, request, pk):
         obj = self.get_object(pk)
-        if obj is None:
-            return Response({
-                'code': 1002,
-                'msg': '对象不存在',
-                'data': None
-            })
 
         serializer = self.serializer(obj, data=request.data, partial=True)
         if serializer.is_valid():
@@ -125,7 +109,7 @@ class DetailAPIView(APIView):
                 'data': None
             })
 
-        obj.delete()
+        obj.is_deleted = True
         res = {
             'code': 1001,
             'msg': '删除成功',
