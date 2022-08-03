@@ -17,7 +17,7 @@ class Groups(models.Model):
 
     name = models.CharField(max_length=50)
     creator = models.IntegerField()
-    avatar = models.TextField(null=True)
+    avatar = models.TextField(default='https://dn-st.teambition.net/teambition/images/logo1.a6464e9c.jpg')
 
 
 class GroupsRelations(models.Model):

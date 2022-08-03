@@ -99,6 +99,7 @@ class UserPassword(APIView):
 
 
 class EmailVerification(APIView):
+    authentication_classes = []
     def post(self, request):
         sender = email_config["email_sender"]
         receiver = request.data.get("email")
