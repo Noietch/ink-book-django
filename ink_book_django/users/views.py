@@ -4,7 +4,6 @@ from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import *
-from django.http import Http404
 from utils.mailsender import MailSender
 from utils.random_generator import get_verification_code
 from utils.config import email_config
@@ -30,32 +29,25 @@ class UserList(APIView):
 
 
 class UserDetail(APIView):
-    def get_object(self, pk):
-        try:
-            return Users.objects.get(pk=pk)
-        except Users.DoesNotExist:
-            raise Http404
 
     def get(self, request, pk):
-        user = self.get_object(pk)
-        serializer = UserSerializer(user)
-        return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
-
-    def put(self, request, pk):
-        user = self.get_object(pk)
-        serializer = UserSerializer(user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'code': 1001, 'msg': '修改成功', 'data': serializer.data})
-        return Response({'code': 1002, 'msg': '修改失败', 'data': serializer.data})
+        try:
+            user = Users.objects.get(pk=pk)
+            serializer = UserSerializer(user)
+            return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
+        except:
+            return Response({'code': 1002, 'msg': '用户不存在', 'data': ''})
 
     def patch(self, request, pk):
-        user = self.get_object(pk)
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'code': 1001, 'msg': '修改成功', 'data': serializer.data})
-        return Response({'code': 1002, 'msg': '修改失败', 'data': serializer.data})
+        try:
+            user = Users.objects.get(pk=pk)
+            serializer = UserSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'code': 1001, 'msg': '修改成功', 'data': serializer.data})
+            return Response({'code': 1002, 'msg': '修改失败', 'data': serializer.data})
+        except:
+            return Response({'code': 1003, 'msg': '用户不存在', 'data': ''})
 
 
 class UserLogin(APIView):
@@ -84,18 +76,15 @@ class UserInfo(APIView):
 
 
 class UserPassword(APIView):
-    def get_object(self, pk):
-        try:
-            return Users.objects.get(pk=pk)
-        except Users.DoesNotExist:
-            raise Http404
-
     def patch(self, request, pk):
-        user = self.get_object(pk)
-        password = request.data.get('password')
-        user.set_password(password)
-        user.save()
-        return Response({'code': 1001, 'msg': '修改成功', 'data': ''})
+        try:
+            user = Users.objects.get(pk=pk)
+            password = request.data.get('password')
+            user.set_password(password)
+            user.save()
+            return Response({'code': 1001, 'msg': '修改成功', 'data': ''})
+        except:
+            return Response({'code': 1002, 'msg': '用户不存在', 'data': ''})
 
 
 class EmailVerification(APIView):
