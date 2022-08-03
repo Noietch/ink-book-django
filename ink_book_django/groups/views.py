@@ -6,6 +6,7 @@ from django.http import Http404
 from utils.secret import *
 from users.models import *
 
+
 class GroupList(APIView):
     def get(self, request):
         groups = Groups.objects.all()
