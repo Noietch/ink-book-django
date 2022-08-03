@@ -11,6 +11,7 @@ from utils.config import email_config
 
 
 class UserList(APIView):
+    authentication_classes = []
     def get(self, request):
         users = Users.objects.all()
         serializer = UserSerializer(users, many=True)
@@ -58,6 +59,7 @@ class UserDetail(APIView):
 
 
 class UserLogin(APIView):
+    authentication_classes = []
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -65,17 +67,20 @@ class UserLogin(APIView):
             user = Users.objects.get(username__exact=email)
             serializer = UserSerializer(user)
         except:
-            return Response({'code': 1003, 'msg': '用户已存在', 'data': ''})
+            return Response({'code': 1003, 'msg': '用户不存在', 'data': ''})
         cur_user = authenticate(username=email, password=password)
+        res = {'id':serializer.data.get('id')}
         if cur_user is not None:
-            return Response({'code': 1001, 'msg': '修改成功', 'data': create_token(serializer.data)})
+            return Response({'code': 1001, 'msg': '登陆成功', 'data': create_token(res)})
         else:
-            return Response({'code': 1002, 'msg': '修改失败', 'data': create_token(serializer.data)})
+            return Response({'code': 1002, 'msg': '登陆失败', 'data': ''})
 
 
 class UserInfo(APIView):
     def post(self, request):
-        return Response({'code': 1001, 'msg': '查询成功', 'data': request.user})
+        user = Users.objects.get(pk=request.user["id"])
+        serializer = UserSerializer(user)
+        return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
 
 
 class UserPassword(APIView):

@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-gfpv3$+p8iv1$fj(s#7asz7q+pj954h4(q=u3_y#x6^ye^k6u5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['121.5.31.11']
+ALLOWED_HOSTS = ['121.5.31.11','127.0.0.1']
 
 
 # Application definition
@@ -136,8 +136,8 @@ AUTH_USER_MODEL = "users.Users"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': [
-#         'users.extensions.jwt_auth.JwtAuthentication',
-#     ]
-# }
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'users.extensions.jwt_auth.JwtAuthentication',
+    ]
+}
