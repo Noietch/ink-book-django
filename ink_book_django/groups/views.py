@@ -58,6 +58,12 @@ class GroupsRelationsDetail(APIView):
         group_id = request.data.get('group_id')
         status = request.data.get('status')
         try:
+            group = Groups.objects.get(pk=group_id)
+            if int(user_id) == group.creator:
+                return Response({'code': 1004, 'msg': '无法修改创建者', 'data': ''})
+        except:
+            return Response({'code': 1003, 'msg': '群组不存在', 'data': ''})
+        try:
             relation = GroupsRelations.objects.get(Q(user_id__exact=user_id) & Q(group_id__exact=group_id))
             relation.status = status
             relation.save()
