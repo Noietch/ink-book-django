@@ -94,7 +94,7 @@ class UserPassword(APIView):
 
 
 class EmailVerification(APIView):
-    def get(self, request):
+    def post(self, request):
         sender = email_config["email_sender"]
         receiver = request.data.get("email")
         authority_code = email_config["authority_code"]
