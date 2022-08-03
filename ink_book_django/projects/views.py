@@ -4,6 +4,7 @@ from django.http import Http404
 
 from .models import *
 from .serializers import *
+from utils.secret import *
 
 
 # Create your views here.
@@ -104,8 +105,7 @@ class DetailAPIView(APIView):
     def delete(self, request, pk):
         obj = self.get_object(pk)
 
-        obj.is_deleted = True
-        obj.save()
+        obj.delete()
         res = {
             'code': 1001,
             'msg': '删除成功',
@@ -173,6 +173,27 @@ class UMLDetailAPIView(SubDetailAPIView):
 class DocumentListAPIView(ListAPIView):
     model = Document
     serializer = DocumentModelSerializer
+
+    def post(self, request):
+        serializer = DocumentModelSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            obj = Document.objects.get(id=serializer.data['id'])
+            obj.encryption = des_encrypt(str(obj.id) + '-' + str(obj.project_id), "document")
+            obj.save()
+            serializer = DocumentModelSerializer(instance=obj)
+            res = {
+                'code': 1001,
+                'msg': '添加成功',
+                'data': serializer.data
+            }
+        else:
+            res = {
+                'code': 1002,
+                'msg': '添加失败',
+                'data': serializer.data
+            }
+        return Response(res)
 
 
 class DocumentDetailAPIView(SubDetailAPIView):

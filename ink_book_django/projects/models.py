@@ -45,7 +45,8 @@ class UML(models.Model):
 
 class Document(models.Model):
     name = models.CharField(max_length=255)
-    route = models.CharField(max_length=255)
+    route = models.CharField(null=True, max_length=255)
+    encryption = models.CharField(null=True, max_length=255)
     project_id = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     avatar = models.TextField(default='https://img.alicdn.com/imgextra/i3/O1CN01fYx7ZL1F2WfrXat17_!!6000000000429-2-tps-600-264.png')
