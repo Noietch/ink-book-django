@@ -11,6 +11,7 @@ from utils.config import email_config
 
 
 class UserList(APIView):
+    authentication_classes = []
     def get(self, request):
         users = Users.objects.all()
         serializer = UserSerializer(users, many=True)
@@ -58,6 +59,7 @@ class UserDetail(APIView):
 
 
 class UserLogin(APIView):
+    authentication_classes = []
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
