@@ -83,7 +83,10 @@ class Encryption(APIView):
 class Decrypt(APIView):
     def post(self, request):
         data = request.data.get('data')
-        return Response({'code': 1001, 'msg': '解密成功', 'data': des_decrypt(data)})
+        try:
+            return Response({'code': 1001, 'msg': '解密成功', 'data': des_decrypt(data)})
+        except:
+            return Response({'code': 1002, 'msg': '解析失败', 'data': ''})
 
 
 class MemberList(APIView):
