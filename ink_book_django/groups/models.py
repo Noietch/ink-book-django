@@ -4,6 +4,7 @@ from django.db import models
 class Groups(models.Model):
     name = models.CharField(max_length=10)
     creator = models.IntegerField()
+    avatar = models.TextField(null=True)
 
 
 class GroupsRelations(models.Model):
