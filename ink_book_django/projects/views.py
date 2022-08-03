@@ -50,11 +50,17 @@ class DetailAPIView(APIView):
         try:
             obj = self.model.objects.get(id=pk)
         except self.model.DoesNotExist:
-            raise Http404
+            obj = None
         return obj
 
     def get(self, request, pk):
         obj = self.get_object(pk)
+        if obj is None:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
 
         serializer = self.serializer(obj)
         res = {
@@ -66,6 +72,12 @@ class DetailAPIView(APIView):
 
     def put(self, request, pk):
         obj = self.get_object(pk)
+        if obj is None:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
 
         serializer = self.serializer(obj, data=request.data)
         if serializer.is_valid():
@@ -77,7 +89,7 @@ class DetailAPIView(APIView):
             }
         else:
             res = {
-                'code': 1002,
+                'code': 1003,
                 'msg': '修改失败',
                 'data': serializer.data
             }
@@ -85,6 +97,12 @@ class DetailAPIView(APIView):
 
     def patch(self, request, pk):
         obj = self.get_object(pk)
+        if obj is None:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
 
         serializer = self.serializer(obj, data=request.data, partial=True)
         if serializer.is_valid():
@@ -96,7 +114,7 @@ class DetailAPIView(APIView):
             }
         else:
             res = {
-                'code': 1002,
+                'code': 1003,
                 'msg': '修改失败',
                 'data': serializer.data
             }
@@ -104,6 +122,12 @@ class DetailAPIView(APIView):
 
     def delete(self, request, pk):
         obj = self.get_object(pk)
+        if obj is None:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
 
         obj.delete()
         res = {
