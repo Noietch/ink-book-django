@@ -7,6 +7,7 @@ from utils.secret import *
 from users.models import *
 from django.db.models import Q
 
+
 class GroupList(APIView):
     def get(self, request):
         groups = Groups.objects.all()
