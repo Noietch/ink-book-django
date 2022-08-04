@@ -238,8 +238,7 @@ class PrototypeDetailAPIView(SubDetailAPIView):
             })
 
         try:
-            data = {}
-            data['components'] = dumps(request.data['components'])
+            data = {'components' : dumps(request.data['components'])}
         except:
             data = request.data
         serializer = self.serializer(obj, data=data, partial=True)
