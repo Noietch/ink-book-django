@@ -184,14 +184,14 @@ class PrototypeListAPIView(ListAPIView):
         serializer1 = self.serializer(objects1, many=True)
         for data in serializer1.data:
             try:
-                data['components'] = loads(data['components'])
+                data['components'] = loads(loads(data['components']))
             except:
                 pass
         objects2 = self.model.objects.filter(is_deleted=True)
         serializer2 = self.serializer(objects2, many=True)
         for data in serializer2.data:
             try:
-                data['components'] = loads(data['components'])
+                data['components'] = loads(loads(data['components']))
             except:
                 pass
         res = {
@@ -217,7 +217,10 @@ class PrototypeDetailAPIView(SubDetailAPIView):
 
         serializer = self.serializer(obj)
         data = serializer.data
-        data['components'] = loads(data['components'])
+        try:
+            data['components'] = loads(data['components'])
+        except:
+            pass
         res = {
             'code': 1001,
             'msg': '查询成功',
@@ -225,19 +228,49 @@ class PrototypeDetailAPIView(SubDetailAPIView):
         }
         return Response(res)
 
+    def patch(self, request, pk):
+        obj = self.get_object(pk)
+        if obj is None:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
+
+        try:
+            data = {}
+            data['components'] = dumps(request.data['components'])
+        except:
+            data = request.data
+        serializer = self.serializer(obj, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            res = {
+                'code': 1001,
+                'msg': '修改成功',
+                'data': serializer.data
+            }
+        else:
+            res = {
+                'code': 1003,
+                'msg': '修改失败',
+                'data': serializer.data
+            }
+        return Response(res)
+
     def post(self, request, pk):
         objects1 = self.model.objects.filter(project_id=pk, is_deleted=False)
         serializer1 = self.serializer(objects1, many=True)
         for data in serializer1.data:
             try:
-                data['components'] = loads(data['components'])
+                data['components'] = loads(loads(data['components']))
             except:
                 pass
         objects2 = self.model.objects.filter(project_id=pk, is_deleted=True)
         serializer2 = self.serializer(objects2, many=True)
         for data in serializer2.data:
             try:
-                data['components'] = loads(data['components'])
+                data['components'] = loads(loads(data['components']))
             except:
                 pass
         res = {
