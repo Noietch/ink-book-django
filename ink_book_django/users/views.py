@@ -6,7 +6,10 @@ from rest_framework.response import Response
 from .serializers import *
 from utils.mailsender import MailSender
 from utils.random_generator import get_verification_code
-from utils.config import email_config
+from utils.config import email_config, img_path, img_url
+from utils.image_utils import image_save
+import time
+import os
 
 
 class UserList(APIView):
@@ -101,3 +104,23 @@ class EmailVerification(APIView):
             return Response({'ret': 1001, 'msg': "发送成功", 'data': code})
         else:
             return Response({'ret': 1002, 'msg': "发送失败", 'data': ''})
+
+
+class UploadAvatar(APIView):
+    authentication_classes = []
+    def post(self,request):
+        try:
+            user_id = request.POST.get('user_id')
+            image = request.FILES.get("file")
+            extension = os.path.splitext(image.name)[-1]
+            filename = "{}{}".format(time.time(),extension)
+            path = os.path.join(img_path, filename)
+            image_save(image, path)
+            url = os.path.join(img_url,filename)
+            user = Users.objects.get(pk = user_id)
+            user.avatar = url
+            user.save()
+            return Response({'ret': 1001, 'msg': "上传成功", 'data': url})
+        except Exception as e:
+            print(e)
+            return Response({'ret': 1002, 'msg': "上传失败", 'data': ''})

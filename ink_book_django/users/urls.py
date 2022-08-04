@@ -8,4 +8,5 @@ urlpatterns = [
     path(r'password-edit', UserPassword.as_view()),
     path(r'login', UserLogin.as_view()),
     path(r'my-info', UserInfo.as_view()),
+    path(r'upload-avatar', UploadAvatar.as_view())
 ]
