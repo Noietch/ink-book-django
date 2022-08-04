@@ -17,13 +17,13 @@ class Project(models.Model):
 
 class Prototype(models.Model):
     name = models.CharField(max_length=255)
-    route = models.CharField(max_length=255)
+    route = models.CharField(max_length=255, null=True)
     project_id = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     avatar = models.TextField(default='https://dn-st.teambition.net/teambition/images/logo3.c69aba1a.jpg')
     width = models.IntegerField(default=1440)
     height = models.IntegerField(default=1024)
-    components = models.TextField()
+    components = models.TextField(null=True)
 
     class Meta:
         verbose_name = "设计原型"
@@ -32,7 +32,7 @@ class Prototype(models.Model):
 
 class UML(models.Model):
     name = models.CharField(max_length=255)
-    route = models.CharField(max_length=255)
+    route = models.CharField(max_length=255, null=True)
     project_id = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     avatar = models.TextField(default='https://dn-st.teambition.net/teambition/images/logo5.a07a0ef0.jpg')
