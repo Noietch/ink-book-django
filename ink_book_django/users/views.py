@@ -76,10 +76,12 @@ class UserInfo(APIView):
 
 
 class UserPassword(APIView):
-    def patch(self, request, pk):
+    authentication_classes = []
+    def patch(self, request):
         try:
-            user = Users.objects.get(pk=pk)
+            email = request.data.get('email')
             password = request.data.get('password')
+            user = Users.objects.get(email__exact=email)
             user.set_password(password)
             user.save()
             return Response({'code': 1001, 'msg': '修改成功', 'data': ''})
