@@ -2,7 +2,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import *
 from users.serializers import UserSerializer
-from django.http import Http404
 from utils.secret import *
 from users.models import *
 from django.db.models import Q
@@ -34,24 +33,54 @@ class UserGroup(APIView):
 
 
 class GroupDetail(APIView):
-    def get_object(self, pk):
-        try:
-            return Groups.objects.get(pk=pk)
-        except Groups.DoesNotExist:
-            raise Http404
-
     def get(self, request, pk):
-        group = self.get_object(pk)
-        serializer = GroupsSerializer(group)
-        return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
+        try:
+            group = Groups.objects.get(pk=pk)
+            serializer = GroupsSerializer(group)
+            return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
+        except:
+            return Response({'code': 1002, 'msg': '群组不存在', 'data': ''})
 
     def patch(self, request, pk):
-        group = self.get_object(pk)
-        serializer = GroupsSerializer(group, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'code': 1001, 'msg': '修改成功', 'data': serializer.data})
-        return Response({'code': 1002, 'msg': '修改失败', 'data': serializer.data})
+        try:
+            group = Groups.objects.get(pk=pk)
+            serializer = GroupsSerializer(group, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'code': 1001, 'msg': '修改成功', 'data': serializer.data})
+            return Response({'code': 1002, 'msg': '修改失败', 'data': serializer.data})
+        except:
+            return Response({'code': 1002, 'msg': '群组不存在', 'data': ''})
+
+
+class GroupsRelationsDetail(APIView):
+    def patch(self,request):
+        user_id = request.data.get('user_id')
+        group_id = request.data.get('group_id')
+        status = request.data.get('status')
+        try:
+            group = Groups.objects.get(pk=group_id)
+            if int(user_id) == group.creator:
+                return Response({'code': 1004, 'msg': '无法修改创建者', 'data': ''})
+        except:
+            return Response({'code': 1003, 'msg': '群组不存在', 'data': ''})
+        try:
+            relation = GroupsRelations.objects.get(Q(user_id__exact=user_id) & Q(group_id__exact=group_id))
+            relation.status = status
+            relation.save()
+            return Response({'code': 1001, 'msg': '修改成功', 'data': ''})
+        except:
+            return Response({'code': 1002, 'msg': '更新失败', 'data': ''})
+
+    def delete(self,request):
+        user_id = request.data.get('user_id')
+        group_id = request.data.get('group_id')
+        try:
+            relation = GroupsRelations.objects.get(Q(user_id__exact=user_id) & Q(group_id__exact=group_id))
+            relation.delete()
+            return Response({'code': 1001, 'msg': '删除成功', 'data': ''})
+        except:
+            return Response({'code': 1002, 'msg': '删除失败', 'data': ''})
 
 
 class GroupsRelationsList(APIView):
@@ -64,7 +93,6 @@ class GroupsRelationsList(APIView):
         user_id = request.data.get('user_id')
         group_id = request.data.get('group_id')
         relations = GroupsRelations.objects.filter(Q(user_id__exact=user_id) & Q(group_id__exact=group_id))
-        print(relations)
         if relations.exists():
             return Response({'code': 1002, 'msg': '已加入该团队', 'data': ''})
 

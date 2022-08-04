@@ -9,4 +9,5 @@ urlpatterns = [
     path(r'encryption/', Encryption.as_view()),
     path(r'decrypt/', Decrypt.as_view()),
     path(r'member-list/<int:pk>/', MemberList.as_view()),
+    path(r'groups-relations-detail/', GroupsRelationsDetail.as_view()),
 ]
