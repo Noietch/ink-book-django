@@ -238,8 +238,7 @@ class PrototypeDetailAPIView(SubDetailAPIView):
             })
 
         try:
-            data = {}
-            data['components'] = dumps(request.data['components'])
+            data = {'components': dumps(request.data['components'])}
         except:
             data = request.data
         serializer = self.serializer(obj, data=data, partial=True)
@@ -279,6 +278,7 @@ class PrototypeDetailAPIView(SubDetailAPIView):
             'data': [serializer1.data, serializer2.data]
         }
         return Response(res)
+
 
 class UMLListAPIView(ListAPIView):
     model = UML
