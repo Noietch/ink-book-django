@@ -4,7 +4,7 @@ from json import loads, dumps
 
 # Create your models here.
 class Project(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=200)
     team_id = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     avatar = models.TextField(default='https://dn-st.teambition.net/teambition/images/logo1.a6464e9c.jpg')
@@ -17,7 +17,7 @@ class Project(models.Model):
 
 
 class Prototype(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=200)
     route = models.CharField(max_length=255, null=True)
     project_id = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
@@ -38,7 +38,7 @@ class Prototype(models.Model):
 
 
 class UML(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=200)
     route = models.CharField(max_length=255, null=True)
     project_id = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
@@ -52,7 +52,7 @@ class UML(models.Model):
 
 
 class Document(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=200)
     route = models.CharField(null=True, max_length=255)
     encryption = models.CharField(null=True, max_length=255)
     project_id = models.IntegerField(default=0)

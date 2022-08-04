@@ -13,6 +13,11 @@ class ListAPIView(APIView):
     model = None
     serializer = None
 
+    def validate(self, serializer):
+        team_id = serializer.validated_data['team_id']
+        name = serializer.validated_data['name']
+        return not self.model.objects.filter(team_id=team_id, name=name).exists()
+
     def get(self, request):
         objects1 = self.model.objects.filter(is_deleted=False)
         serializer1 = self.serializer(objects1, many=True)
@@ -28,12 +33,19 @@ class ListAPIView(APIView):
     def post(self, request):
         serializer = self.serializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            res = {
-                'code': 1001,
-                'msg': '添加成功',
-                'data': serializer.data
-            }
+            if not self.validate(serializer):
+                res = {
+                    'code': 1003,
+                    'msg': '命名重复',
+                    'data': serializer.data
+                }
+            else:
+                serializer.save()
+                res = {
+                    'code': 1001,
+                    'msg': '添加成功',
+                    'data': serializer.data
+                }
         else:
             res = {
                 'code': 1002,
@@ -43,9 +55,27 @@ class ListAPIView(APIView):
         return Response(res)
 
 
+class SubListAPIView(ListAPIView):
+    def validate(self, serializer):
+        project_id = serializer.validated_data['project_id']
+        name = serializer.validated_data['name']
+        return not self.model.objects.filter(project_id=project_id, name=name).exists()
+
+
 class DetailAPIView(APIView):
     model = None
     serializer = None
+
+    def validate(self, obj, serializer):
+        try:
+            team_id = serializer.validated_data['team_id']
+        except:
+            team_id = obj.team_id
+        try:
+            name = serializer.validated_data['name']
+        except:
+            name = obj.name
+        return not self.model.objects.filter(team_id=team_id, name=name).exists()
 
     def get_object(self, pk):
         try:
@@ -82,12 +112,19 @@ class DetailAPIView(APIView):
 
         serializer = self.serializer(obj, data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            res = {
-                'code': 1001,
-                'msg': '修改成功',
-                'data': serializer.data
-            }
+            if not self.validate(None, serializer):
+                res = {
+                    'code': 1004,
+                    'msg': '命名重复',
+                    'data': serializer.data
+                }
+            else:
+                serializer.save()
+                res = {
+                    'code': 1001,
+                    'msg': '添加成功',
+                    'data': serializer.data
+                }
         else:
             res = {
                 'code': 1003,
@@ -107,12 +144,19 @@ class DetailAPIView(APIView):
 
         serializer = self.serializer(obj, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
-            res = {
-                'code': 1001,
-                'msg': '修改成功',
-                'data': serializer.data
-            }
+            if not self.validate(obj, serializer):
+                res = {
+                    'code': 1004,
+                    'msg': '命名重复',
+                    'data': serializer.data
+                }
+            else:
+                serializer.save()
+                res = {
+                    'code': 1001,
+                    'msg': '添加成功',
+                    'data': serializer.data
+                }
         else:
             res = {
                 'code': 1003,
@@ -152,6 +196,17 @@ class DetailAPIView(APIView):
 
 
 class SubDetailAPIView(DetailAPIView):
+    def validate(self, obj, serializer):
+        try:
+            project_id = serializer.validated_data['project_id']
+        except:
+            project_id = obj.project_id
+        try:
+            name = serializer.validated_data['name']
+        except:
+            name = obj.name
+        return not self.model.objects.filter(project_id=project_id, name=name).exists()
+
     def post(self, request, pk):
         objects1 = self.model.objects.filter(project_id=pk, is_deleted=False)
         serializer1 = self.serializer(objects1, many=True)
@@ -175,7 +230,7 @@ class ProjectDetailAPIView(DetailAPIView):
     serializer = ProjectModelSerializer
 
 
-class PrototypeListAPIView(ListAPIView):
+class PrototypeListAPIView(SubListAPIView):
     model = Prototype
     serializer = PrototypeModelSerializer
 
@@ -243,12 +298,19 @@ class PrototypeDetailAPIView(SubDetailAPIView):
             data = request.data
         serializer = self.serializer(obj, data=data, partial=True)
         if serializer.is_valid():
-            serializer.save()
-            res = {
-                'code': 1001,
-                'msg': '修改成功',
-                'data': serializer.data
-            }
+            if not self.validate(obj, serializer):
+                res = {
+                    'code': 1004,
+                    'msg': '命名重复',
+                    'data': serializer.data
+                }
+            else:
+                serializer.save()
+                res = {
+                    'code': 1001,
+                    'msg': '添加成功',
+                    'data': serializer.data
+                }
         else:
             res = {
                 'code': 1003,
@@ -279,7 +341,7 @@ class PrototypeDetailAPIView(SubDetailAPIView):
         }
         return Response(res)
 
-class UMLListAPIView(ListAPIView):
+class UMLListAPIView(SubListAPIView):
     model = UML
     serializer = UMLModelSerializer
 
@@ -289,23 +351,30 @@ class UMLDetailAPIView(SubDetailAPIView):
     serializer = UMLModelSerializer
 
 
-class DocumentListAPIView(ListAPIView):
+class DocumentListAPIView(SubListAPIView):
     model = Document
     serializer = DocumentModelSerializer
 
     def post(self, request):
         serializer = DocumentModelSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            obj = Document.objects.get(id=serializer.data['id'])
-            obj.encryption = des_encrypt(str(obj.id) + '-' + str(obj.project_id), "document")
-            obj.save()
-            serializer = DocumentModelSerializer(instance=obj)
-            res = {
-                'code': 1001,
-                'msg': '添加成功',
-                'data': serializer.data
-            }
+            if not self.validate(serializer):
+                res = {
+                    'code': 1003,
+                    'msg': '命名重复',
+                    'data': serializer.data
+                }
+            else:
+                serializer.save()
+                obj = Document.objects.get(id=serializer.data['id'])
+                obj.encryption = des_encrypt(str(obj.id) + '-' + str(obj.project_id), "document")
+                obj.save()
+                serializer = DocumentModelSerializer(instance=obj)
+                res = {
+                    'code': 1001,
+                    'msg': '添加成功',
+                    'data': serializer.data
+                }
         else:
             res = {
                 'code': 1002,
