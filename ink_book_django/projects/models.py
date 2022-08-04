@@ -1,4 +1,5 @@
 from django.db import models
+from json import loads, dumps
 
 
 # Create your models here.
@@ -24,6 +25,12 @@ class Prototype(models.Model):
     width = models.IntegerField(default=1440)
     height = models.IntegerField(default=1024)
     components = models.TextField(null=True)
+
+    # def save(self, *args, **kwargs):
+    #     for key, value in kwargs:
+    #         if key == 'components':
+    #             value = dumps(value)
+    #     super(Prototype, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name = "设计原型"
