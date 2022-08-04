@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import Http404
+from json import loads, dumps
 
 from .models import *
 from .serializers import *
@@ -178,11 +179,73 @@ class PrototypeListAPIView(ListAPIView):
     model = Prototype
     serializer = PrototypeModelSerializer
 
+    def get(self, request):
+        objects1 = self.model.objects.filter(is_deleted=False)
+        serializer1 = self.serializer(objects1, many=True)
+        for data in serializer1.data:
+            try:
+                data['components'] = loads(data['components'])
+            except:
+                pass
+        objects2 = self.model.objects.filter(is_deleted=True)
+        serializer2 = self.serializer(objects2, many=True)
+        for data in serializer2.data:
+            try:
+                data['components'] = loads(data['components'])
+            except:
+                pass
+        res = {
+            'code': 1001,
+            'msg': '查询成功',
+            'data': [serializer1.data, serializer2.data]
+        }
+        return Response(res)
+
 
 class PrototypeDetailAPIView(SubDetailAPIView):
     model = Prototype
     serializer = PrototypeModelSerializer
 
+    def get(self, request, pk):
+        obj = self.get_object(pk)
+        if obj is None:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
+
+        serializer = self.serializer(obj)
+        data = serializer.data
+        data['components'] = loads(data['components'])
+        res = {
+            'code': 1001,
+            'msg': '查询成功',
+            'data': data
+        }
+        return Response(res)
+
+    def post(self, request, pk):
+        objects1 = self.model.objects.filter(project_id=pk, is_deleted=False)
+        serializer1 = self.serializer(objects1, many=True)
+        for data in serializer1.data:
+            try:
+                data['components'] = loads(data['components'])
+            except:
+                pass
+        objects2 = self.model.objects.filter(project_id=pk, is_deleted=True)
+        serializer2 = self.serializer(objects2, many=True)
+        for data in serializer2.data:
+            try:
+                data['components'] = loads(data['components'])
+            except:
+                pass
+        res = {
+            'code': 1001,
+            'msg': '查询成功',
+            'data': [serializer1.data, serializer2.data]
+        }
+        return Response(res)
 
 class UMLListAPIView(ListAPIView):
     model = UML
