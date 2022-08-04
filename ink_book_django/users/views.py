@@ -29,7 +29,6 @@ class UserList(APIView):
 
 
 class UserDetail(APIView):
-
     def get(self, request, pk):
         try:
             user = Users.objects.get(pk=pk)
