@@ -75,7 +75,8 @@ class DetailAPIView(APIView):
             name = serializer.validated_data['name']
         except:
             name = obj.name
-        return not self.model.objects.filter(team_id=team_id, name=name).exists()
+        return not (self.model.objects.filter(team_id=team_id, name=name).exists()
+            and not self.model.objects.get(team_id=team_id, name=name) == obj)
 
     def get_object(self, pk):
         try:
@@ -122,7 +123,7 @@ class DetailAPIView(APIView):
                 serializer.save()
                 res = {
                     'code': 1001,
-                    'msg': '添加成功',
+                    'msg': '修改成功',
                     'data': serializer.data
                 }
         else:
@@ -146,7 +147,7 @@ class DetailAPIView(APIView):
         if serializer.is_valid():
             if not self.validate(obj, serializer):
                 res = {
-                    'code': 1004,
+                    'code': 1003,
                     'msg': '命名重复',
                     'data': serializer.data
                 }
@@ -154,7 +155,7 @@ class DetailAPIView(APIView):
                 serializer.save()
                 res = {
                     'code': 1001,
-                    'msg': '添加成功',
+                    'msg': '修改成功',
                     'data': serializer.data
                 }
         else:
@@ -205,7 +206,8 @@ class SubDetailAPIView(DetailAPIView):
             name = serializer.validated_data['name']
         except:
             name = obj.name
-        return not self.model.objects.filter(project_id=project_id, name=name).exists()
+        return not (self.model.objects.filter(project_id=project_id, name=name).exists()
+                and not self.model.objects.get(project_id=project_id, name=name) == obj)
 
     def post(self, request, pk):
         objects1 = self.model.objects.filter(project_id=pk, is_deleted=False)
@@ -300,7 +302,7 @@ class PrototypeDetailAPIView(SubDetailAPIView):
         if serializer.is_valid():
             if not self.validate(obj, serializer):
                 res = {
-                    'code': 1004,
+                    'code': 1003,
                     'msg': '命名重复',
                     'data': serializer.data
                 }
@@ -308,7 +310,7 @@ class PrototypeDetailAPIView(SubDetailAPIView):
                 serializer.save()
                 res = {
                     'code': 1001,
-                    'msg': '添加成功',
+                    'msg': '修改成功',
                     'data': serializer.data
                 }
         else:
