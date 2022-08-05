@@ -72,9 +72,12 @@ class UserLogin(APIView):
 
 class UserInfo(APIView):
     def post(self, request):
-        user = Users.objects.get(pk=request.user["id"])
-        serializer = UserSerializer(user)
-        return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
+        try:
+            user = Users.objects.get(pk=request.user["id"])
+            serializer = UserSerializer(user)
+            return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
+        except:
+            return Response({'code': 1002, 'msg': '用户不存在', 'data': ''})
 
 
 class UserPassword(APIView):

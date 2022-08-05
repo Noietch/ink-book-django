@@ -26,12 +26,6 @@ class Prototype(models.Model):
     height = models.IntegerField(default=1024)
     components = models.TextField(null=True)
 
-    # def save(self, *args, **kwargs):
-    #     for key, value in kwargs:
-    #         if key == 'components':
-    #             value = dumps(value)
-    #     super(Prototype, self).save(*args, **kwargs)
-
     class Meta:
         verbose_name = "设计原型"
         verbose_name_plural = verbose_name
@@ -53,7 +47,7 @@ class UML(models.Model):
 
 class Document(models.Model):
     name = models.CharField(max_length=200)
-    route = models.CharField(null=True, max_length=255)
+    route = models.CharField(max_length=255, null=True)
     encryption = models.CharField(null=True, max_length=255)
     project_id = models.IntegerField(default=0)
     is_deleted = models.BooleanField(default=False)

@@ -15,10 +15,24 @@ class GroupList(APIView):
 
     def post(self, request):
         serializer = GroupsSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
-        return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
+        try:
+            user = Users.objects.get(pk = request.data.get("creator"))
+        except:
+            return Response({'code': 1003, 'msg': '用户不存在', 'data': ''})
+
+        group = Groups.objects.filter(name__exact = request.data.get("name"))
+        if group.exists():
+            return Response({'code': 1004, 'msg': '群组名已存在', 'data': ''})
+
+        try:
+            if serializer.is_valid():
+                serializer.save()
+                cur_group = Groups.objects.get(name__exact = request.data.get("name"))
+                user.cur_group = cur_group.id
+                return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
+            return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
+        except:
+            return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
 
 
 class UserGroup(APIView):
@@ -78,6 +92,16 @@ class GroupsRelationsDetail(APIView):
         try:
             relation = GroupsRelations.objects.get(Q(user_id__exact=user_id) & Q(group_id__exact=group_id))
             relation.delete()
+            try:
+                user = Users.objects.get(pk = user_id)
+                if user.cur_group == group_id:
+                    if GroupsRelations.objects.filter(user_id__exact=user_id).exists():
+                        group = groups_relations = GroupsRelations.objects.filter(user_id__exact=user_id)[0]
+                        user.cur_group = group.id
+                    else:
+                        user.cur_group = 0
+            except:
+                pass
             return Response({'code': 1001, 'msg': '删除成功', 'data': ''})
         except:
             return Response({'code': 1002, 'msg': '删除失败', 'data': ''})
@@ -119,8 +143,8 @@ class Decrypt(APIView):
 
 
 class MemberList(APIView):
-    def get(self, request, pk):
-        groups_relations = GroupsRelations.objects.filter(group_id__exact=pk)
+    def post(self, request):
+        groups_relations = GroupsRelations.objects.filter(group_id__exact=request.data.get('group_id'))
         res = []
         for relation in groups_relations:
             serializer = UserSerializer(Users.objects.get(pk=relation.user_id))
