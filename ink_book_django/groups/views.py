@@ -91,6 +91,16 @@ class GroupsRelationsDetail(APIView):
         try:
             relation = GroupsRelations.objects.get(Q(user_id__exact=user_id) & Q(group_id__exact=group_id))
             relation.delete()
+            try:
+                user = Users.objects.get(pk = user_id)
+                if user.cur_group == group_id:
+                    if GroupsRelations.objects.filter(user_id__exact=user_id).exists():
+                        group = groups_relations = GroupsRelations.objects.filter(user_id__exact=user_id)[0]
+                        user.cur_group = group.id
+                    else:
+                        user.cur_group = 0
+            except:
+                pass
             return Response({'code': 1001, 'msg': '删除成功', 'data': ''})
         except:
             return Response({'code': 1002, 'msg': '删除失败', 'data': ''})
