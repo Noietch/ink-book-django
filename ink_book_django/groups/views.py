@@ -96,8 +96,8 @@ class GroupsRelationsDetail(APIView):
                 user = Users.objects.get(pk = user_id)
                 if user.cur_group == group_id:
                     if GroupsRelations.objects.filter(user_id__exact=user_id).exists():
-                        group = groups_relations = GroupsRelations.objects.filter(user_id__exact=user_id)[0]
-                        user.cur_group = group.id
+                        relation = GroupsRelations.objects.filter(user_id__exact=user_id)[0]
+                        user.cur_group = relation.group_id
                     else:
                         user.cur_group = 0
             except:
