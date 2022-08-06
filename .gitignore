@@ -1,4 +1,5 @@
 ink_book_django/.idea
+ink_book_django/log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

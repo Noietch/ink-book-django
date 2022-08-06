@@ -147,7 +147,7 @@ class DetailAPIView(APIView):
         if serializer.is_valid():
             if not self.validate(obj, serializer):
                 res = {
-                    'code': 1003,
+                    'code': 1004,
                     'msg': '命名重复',
                     'data': serializer.data
                 }
@@ -274,10 +274,6 @@ class PrototypeDetailAPIView(SubDetailAPIView):
 
         serializer = self.serializer(obj)
         data = serializer.data
-        try:
-            data['components'] = loads(data['components'])
-        except:
-            pass
         res = {
             'code': 1001,
             'msg': '查询成功',
@@ -294,15 +290,11 @@ class PrototypeDetailAPIView(SubDetailAPIView):
                 'data': None
             })
 
-        try:
-            data = {'components' : dumps(request.data['components'])}
-        except:
-            data = request.data
-        serializer = self.serializer(obj, data=data, partial=True)
+        serializer = self.serializer(obj, data=request.data, partial=True)
         if serializer.is_valid():
             if not self.validate(obj, serializer):
                 res = {
-                    'code': 1003,
+                    'code': 1004,
                     'msg': '命名重复',
                     'data': serializer.data
                 }
@@ -342,6 +334,26 @@ class PrototypeDetailAPIView(SubDetailAPIView):
             'data': [serializer1.data, serializer2.data]
         }
         return Response(res)
+
+
+class PrototypeInfoAPIView(APIView):
+    def post(self, request):
+        try:
+            obj = Prototype.objects.get(id=request.data.get('id'))
+        except Prototype.DoesNotExist:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
+        serializer = PrototypeModelSerializer(obj)
+        res = {
+            'code': 1001,
+            'msg': '查询成功',
+            'data': serializer.data
+        }
+        return Response(res)
+
 
 class UMLListAPIView(SubListAPIView):
     model = UML
