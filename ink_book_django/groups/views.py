@@ -27,11 +27,13 @@ class GroupList(APIView):
         try:
             if serializer.is_valid():
                 serializer.save()
-                cur_group = Groups.objects.get(name__exact = request.data.get("name"))
-                user.cur_group = cur_group.id
+                cur_group = Groups.objects.filter(name__exact = request.data.get("name"))
+                user.cur_group = cur_group[0].id
+                user.save()
                 return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
             return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
-        except:
+        except Exception as e:
+            print(e)
             return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
 
 
