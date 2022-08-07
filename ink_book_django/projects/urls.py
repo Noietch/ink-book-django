@@ -14,6 +14,7 @@ urlpatterns = [
     path(r'umls/<int:pk>/', UMLDetailAPIView.as_view()),
     path(r'documents/', DocumentListAPIView.as_view()),
     path(r'documents/<int:pk>/', DocumentDetailAPIView.as_view()),
+    path(r'documents/PDFConvertor/', PDFConvertor.as_view()),
 ]
 
 # router = DefaultRouter()
