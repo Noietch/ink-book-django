@@ -231,6 +231,17 @@ class ProjectDetailAPIView(DetailAPIView):
     model = Project
     serializer = ProjectModelSerializer
 
+    def copy(self, request, pk):
+        obj = self.get_object(pk)
+        if obj is None:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
+        
+        serializer = ProjectModelSerializer()
+
 
 class PrototypeListAPIView(SubListAPIView):
     model = Prototype
