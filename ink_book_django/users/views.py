@@ -40,12 +40,11 @@ class UserList(APIView):
             group_relations.save()
             user.cur_group = group_id
             user.save()
-
-            serializer = UserSerializer(new_user)
+            serializer = UserSerializer(user)
             return Response({'code': 1001, 'msg': '注册成功', 'data': serializer.data})
         except Exception as e:
             print(e)
-            return Response({'code': 1001, 'msg': '注册失败', 'data': serializer.data})
+            return Response({'code': 1001, 'msg': '注册失败', 'data': ''})
 
 
 class UserDetail(APIView):

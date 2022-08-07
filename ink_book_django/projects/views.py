@@ -460,17 +460,26 @@ class PrototypeInfoAPIView(APIView):
 class PrototypeUserAPIView(APIView):
     authentication_classes = []
     def post(self, request):
-        try:
-            user_id = request.data.get('user_id')
-            prototype_id = request.data.get('prototype_id')
-            group_id = Project.objects.get(id=Prototype.objects.get(id=prototype_id).project_id).team_id
-        except Model.DoesNotExist:
-            return Response({'code': 1002, 'msg': '查询失败', 'data': None})
-        return Response({
-            'code': 1001,
-            'msg': '查询成功',
-            'data': GroupsRelations.objects.filter(user_id=user_id, group_id=group_id).exists()
-        })
+        user_id = request.data.get('user_id')
+        prototype_id = request.data.get('prototype_id')
+        if user_id is None:
+            prototype = Prototype.objects.get(id=prototype_id)
+            return Response({
+                'code': 1001,
+                'msg': '查询成功',
+                'data': prototype.public
+            })
+
+        else:
+            try:
+                group_id = Project.objects.get(id=Prototype.objects.get(id=prototype_id).project_id).team_id
+            except Model.DoesNotExist:
+                return Response({'code': 1002, 'msg': '查询失败', 'data': None})
+            return Response({
+                'code': 1001,
+                'msg': '查询成功',
+                'data': GroupsRelations.objects.filter(user_id=user_id, group_id=group_id).exists()
+            })
 
 
 class UMLListAPIView(SubListAPIView):
