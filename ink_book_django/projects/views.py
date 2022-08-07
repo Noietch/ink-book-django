@@ -240,7 +240,29 @@ class ProjectDetailAPIView(DetailAPIView):
                 'data': None
             })
         
-        serializer = ProjectModelSerializer()
+        name = obj.name
+        old_serializer = ProjectModelSerializer(obj)
+        data = old_serializer.data
+        data['name'] = '%s_copy' % name
+        new_serializer = ProjectModelSerializer(data=old_serializer.data)
+        if serializer.is_valid():
+            count = 2
+            while not self.validate(obj, serializer):
+                new_serializer.validated_data['name'] = '%s_copy%d' % (name, count)
+                count += 1
+            serializer.save()
+            res = {
+                'code': 1001,
+                'msg': '修改成功',
+                'data': serializer.data
+            }
+        else:
+            res = {
+                'code': 1003,
+                'msg': '修改失败',
+                'data': serializer.data
+            }
+        return Response(res)
 
 
 class PrototypeListAPIView(SubListAPIView):
