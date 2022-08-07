@@ -6,7 +6,11 @@ from json import loads, dumps
 from .models import *
 from .serializers import *
 from utils.secret import *
+from utils.config import *
 
+import pdfkit
+import time
+import os
 
 # Create your views here.
 class ListAPIView(APIView):
@@ -434,3 +438,18 @@ class DocumentListAPIView(SubListAPIView):
 class DocumentDetailAPIView(SubDetailAPIView):
     model = Document
     serializer = DocumentModelSerializer
+
+
+class PDFConvertor(APIView):
+    def post(self, request):
+        try:
+            filename = request.data.get('name')
+            content = request.data.get('content')
+            full_name = filename + str(time.time()) + '.pdf'
+            path = os.path.join(img_path, full_name)
+            pdfkit.from_string(content, path)
+            return Response({"code":1001,"msg":"导出成功","data":os.path.join(img_url, full_name)})
+        except Exception as e:
+            print("PDFConvertor:", e)
+            return Response({"code":1002,"msg":"导出失败","data":''})
+            
