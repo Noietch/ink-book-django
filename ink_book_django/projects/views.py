@@ -237,22 +237,10 @@ class ProjectDetailAPIView(DetailAPIView):
 
 
 class ProjectCopyAPIView(APIView):
-    def validate(self, serializer, model):
+    def validate(self, serializer):
         team_id = serializer.validated_data['team_id']
         name = serializer.validated_data['name']
         return not Project.objects.filter(team_id=team_id, name=name).exists()
-
-    def sub_validate(self, serializer, model):
-        project_id = serializer.validated_data['project_id']
-        name = serializer.validated_data['name']
-        return not model.objects.filter(project_id=project_id, name=name).exists()
-
-    def get_object(self, pk):
-        try:
-            obj = Project.objects.get(id=pk)
-        except Project.DoesNotExist:
-            obj = None
-        return obj
 
     def copy(self, obj, model, serializer, validate):
         old_serializer = serializer(obj)
@@ -263,13 +251,32 @@ class ProjectCopyAPIView(APIView):
 
         if new_serializer.is_valid():
             count = 2
-            while not validate(new_serializer, model):
+            while not self.validate(new_serializer):
                 new_serializer.validated_data['name'] = '%s_copy%d' % (name, count)
                 count += 1
+            new_serializer.save()
+            return new_serializer.data
+        else:
+            return None
+
+    def sub_copy(self, obj, serializer, fk):
+        old_serializer = serializer(obj)
+        data = old_serializer.data
+        data['project_id'] = fk
+        new_serializer = serializer(data=data)
+
+        if new_serializer.is_valid():
             new_serializer.save()
             return True
         else:
             return False
+
+    def get_object(self, pk):
+        try:
+            obj = Project.objects.get(id=pk)
+        except Project.DoesNotExist:
+            obj = None
+        return obj
 
     def post(self, request):
         pk = request.data.get('id')
@@ -285,20 +292,21 @@ class ProjectCopyAPIView(APIView):
             'msg': '复制失败',
             'data': None
         }
-        if not self.copy(obj, Project, ProjectModelSerializer, self.validate):
+        data = self.copy(obj, Project, ProjectModelSerializer, self.validate)
+        if data is None:
             return Response(res)
 
         Models = [Prototype, UML, Document]
         Serializers = [PrototypeModelSerializer, UMLModelSerializer, DocumentModelSerializer]
         for i in range(0, 3):
             for obj in Models[i].objects.filter(project_id=pk):
-                if not self.copy(obj, Models[i], Serializers[i], self.sub_validate):
+                if not self.sub_copy(obj, Serializers[i], data['id']):
                     return Response(res)
 
         res = {
             'code': 1001,
             'msg': '复制成功',
-            'data': None
+            'data': data
         }
         return Response(res)
 
