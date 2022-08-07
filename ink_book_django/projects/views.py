@@ -318,18 +318,18 @@ class PrototypeListAPIView(SubListAPIView):
     def get(self, request):
         objects1 = self.model.objects.filter(is_deleted=False)
         serializer1 = self.serializer(objects1, many=True)
-        for data in serializer1.data:
-            try:
-                data['components'] = loads(loads(data['components']))
-            except:
-                pass
+        # for data in serializer1.data:
+        #     try:
+        #         data['components'] = loads(loads(data['components']))
+        #     except:
+        #         pass
         objects2 = self.model.objects.filter(is_deleted=True)
         serializer2 = self.serializer(objects2, many=True)
-        for data in serializer2.data:
-            try:
-                data['components'] = loads(loads(data['components']))
-            except:
-                pass
+        # for data in serializer2.data:
+        #     try:
+        #         data['components'] = loads(loads(data['components']))
+        #     except:
+        #         pass
         res = {
             'code': 1001,
             'msg': '查询成功',
@@ -395,18 +395,18 @@ class PrototypeDetailAPIView(SubDetailAPIView):
     def post(self, request, pk):
         objects1 = self.model.objects.filter(project_id=pk, is_deleted=False)
         serializer1 = self.serializer(objects1, many=True)
-        for data in serializer1.data:
-            try:
-                data['components'] = loads(loads(data['components']))
-            except:
-                pass
+        # for data in serializer1.data:
+        #     try:
+        #         data['components'] = loads(loads(data['components']))
+        #     except:
+        #         pass
         objects2 = self.model.objects.filter(project_id=pk, is_deleted=True)
         serializer2 = self.serializer(objects2, many=True)
-        for data in serializer2.data:
-            try:
-                data['components'] = loads(loads(data['components']))
-            except:
-                pass
+        # for data in serializer2.data:
+        #     try:
+        #         data['components'] = loads(loads(data['components']))
+        #     except:
+        #         pass
         res = {
             'code': 1001,
             'msg': '查询成功',
