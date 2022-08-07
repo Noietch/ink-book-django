@@ -55,6 +55,7 @@ class Document(models.Model):
     avatar = models.TextField(default='https://img.alicdn.com/imgextra/i3/O1CN01fYx7ZL1F2WfrXat17_!!6000000000429-2-tps-600-264.png')
     width = models.IntegerField(default=1440)
     height = models.IntegerField(default=1024)
+    label = models.CharField(max_length=100, null=True)
 
     class Meta:
         verbose_name = "文档"
