@@ -11,6 +11,7 @@ urlpatterns = [
     path(r'prototypes/info/', PrototypeInfoAPIView.as_view()),
     path(r'prototypes/users/', PrototypeUserAPIView.as_view()),
     path(r'prototypes/<int:pk>/', PrototypeDetailAPIView.as_view()),
+    path(r'prototypes/ImageUpload/', ImageUpload.as_view()),
     path(r'umls/', UMLListAPIView.as_view()),
     path(r'umls/<int:pk>/', UMLDetailAPIView.as_view()),
     path(r'documents/', DocumentListAPIView.as_view()),

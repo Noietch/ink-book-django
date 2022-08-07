@@ -9,6 +9,7 @@ from .serializers import *
 from groups.models import GroupsRelations
 from utils.secret import *
 from utils.config import *
+from utils.image_utils import base64_image
 
 import pdfkit
 import time
@@ -457,6 +458,7 @@ class PrototypeInfoAPIView(APIView):
 
 
 class PrototypeUserAPIView(APIView):
+    authentication_classes = []
     def post(self, request):
         try:
             user_id = request.data.get('user_id')
@@ -549,9 +551,20 @@ class PDFConvertor(APIView):
             full_name = filename + str(time.time()) + '.pdf'
             path = os.path.join(img_path, full_name)
             pdfkit.from_string(content, path)
-            return Response({"code":1001,"msg":"导出成功","data":os.path.join(img_url, full_name)})
+            return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
         except Exception as e:
             print("PDFConvertor:", e)
-            return Response({"code":1002,"msg":"导出失败","data":''})
-            
+            return Response({"code": 1002, "msg": "导出失败", "data": ''})
 
+
+class ImageUpload(APIView):
+    def post(self, request):
+        try:
+            img = request.data.get('img')
+            full_name = str(time.time()) + ".jpg"
+            path = os.path.join(img_path, full_name)
+            base64_image(img, path)
+            return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
+        except Exception as e:
+            print("ImageUpload:", e)
+            return Response({"code": 1002, "msg": "导出失败", "data": ''})
