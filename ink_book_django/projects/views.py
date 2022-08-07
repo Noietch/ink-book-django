@@ -247,18 +247,22 @@ class ProjectDetailAPIView(DetailAPIView):
             sort_key = request.data['sort']
         except:
             sort_key = 'id'
-        order = request.data['desc']
+        try:
+            order = request.data['desc']
+        except:
+            order = 1
         objects1 = Project.objects.filter(team_id=pk, name__contains=search_key, is_deleted=False).order_by(sort_key)
         objects2 = Project.objects.filter(team_id=pk, name__contains=search_key, is_deleted=True).order_by(sort_key)
-        if order == 2:
-            objects1 = objects1.reverse()
-            objects2 = objects2.reverse()
         serializer1 = PrototypeModelSerializer(objects1, many=True)
         serializer2 = PrototypeModelSerializer(objects2, many=True)
+        if order == 2:
+            data = [serializer1.data, serializer2.data]
+        else:
+            data = [serializer1.data.__reversed__(), serializer2.data.__reversed__()]
         res = {
             'code': 1001,
             'msg': '查询成功',
-            'data': [serializer1.data, serializer2.data]
+            'data': data
         }
         return Response(res)
 
