@@ -507,12 +507,12 @@ class DocumentCenterAPIView(APIView):
         res = {"name": "documentMall", "label": "文档中心", "icon": "user", "url": "UserManage/UserManage"}
         projects_all = []
         for project in Project.objects.filter(team_id=pk):
-            pro_dict = {"name": project.name}
+            pro_dict = {"name": project.name, "label": "project"}
             labels = []
             for label in Document.LABELS:
-                label_dict = {"name": label}
+                label_dict = {"name": label, "label": "group"}
                 documents_labels = []
-                documents = Project.objects.filter(label=label)
+                documents = Document.objects.filter(project_id=project.id, label=label)
                 for document in documents:
                     documents_labels.append(document.get_info())
                 label_dict['children'] = documents_labels
