@@ -1,4 +1,3 @@
-import utils.html_content as email_content
 from .extensions.jwt_auth import create_token
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
@@ -8,6 +7,10 @@ from utils.mailsender import MailSender
 from utils.random_generator import get_verification_code
 from utils.config import email_config, img_path, img_url
 from utils.image_utils import image_save
+from groups.model import Groups
+
+
+import utils.html_content as email_content
 import time
 import os
 
@@ -27,6 +30,7 @@ class UserList(APIView):
             return Response({'code': 1002, 'msg': '用户名已存在', 'data': ''})
         new_user = Users.objects.create_user(username=email, email=email, password=password)
         new_user.save()
+
         serializer = UserSerializer(new_user)
         return Response({'code': 1001, 'msg': '注册成功', 'data': serializer.data})
 
