@@ -76,7 +76,7 @@ class DetailAPIView(APIView):
         except:
             name = obj.name
         return not (self.model.objects.filter(team_id=team_id, name=name).exists()
-            and not self.model.objects.get(team_id=team_id, name=name) == obj)
+                    and not self.model.objects.get(team_id=team_id, name=name) == obj)
 
     def get_object(self, pk):
         try:
@@ -207,7 +207,7 @@ class SubDetailAPIView(DetailAPIView):
         except:
             name = obj.name
         return not (self.model.objects.filter(project_id=project_id, name=name).exists()
-                and not self.model.objects.get(project_id=project_id, name=name) == obj)
+                    and not self.model.objects.get(project_id=project_id, name=name) == obj)
 
     def post(self, request, pk):
         objects1 = self.model.objects.filter(project_id=pk, is_deleted=False)
@@ -231,7 +231,44 @@ class ProjectDetailAPIView(DetailAPIView):
     model = Project
     serializer = ProjectModelSerializer
 
-    def copy(self, request, pk):
+
+class ProjectCopyAPIView(APIView):
+    def validate(self, serializer, model):
+        team_id = serializer.validated_data['team_id']
+        name = serializer.validated_data['name']
+        return not Project.objects.filter(team_id=team_id, name=name).exists()
+
+    def sub_validate(self, serializer, model):
+        project_id = serializer.validated_data['project_id']
+        name = serializer.validated_data['name']
+        return not model.objects.filter(project_id=project_id, name=name).exists()
+
+    def get_object(self, pk):
+        try:
+            obj = Project.objects.get(id=pk)
+        except Project.DoesNotExist:
+            obj = None
+        return obj
+
+    def copy(self, obj, model, serializer, validate):
+        old_serializer = serializer(obj)
+        name = obj.name
+        data = old_serializer.data
+        data['name'] = '%s_copy' % name
+        new_serializer = serializer(data=data)
+
+        if new_serializer.is_valid():
+            count = 2
+            while not validate(new_serializer, model):
+                new_serializer.validated_data['name'] = '%s_copy%d' % (name, count)
+                count += 1
+            new_serializer.save()
+            return True
+        else:
+            return False
+
+    def post(self, request):
+        pk = request.data.get('id')
         obj = self.get_object(pk)
         if obj is None:
             return Response({
@@ -239,29 +276,26 @@ class ProjectDetailAPIView(DetailAPIView):
                 'msg': '对象不存在',
                 'data': None
             })
-        
-        name = obj.name
-        old_serializer = ProjectModelSerializer(obj)
-        data = old_serializer.data
-        data['name'] = '%s_copy' % name
-        new_serializer = ProjectModelSerializer(data=old_serializer.data)
-        if serializer.is_valid():
-            count = 2
-            while not self.validate(obj, serializer):
-                new_serializer.validated_data['name'] = '%s_copy%d' % (name, count)
-                count += 1
-            serializer.save()
-            res = {
-                'code': 1001,
-                'msg': '修改成功',
-                'data': serializer.data
-            }
-        else:
-            res = {
-                'code': 1003,
-                'msg': '修改失败',
-                'data': serializer.data
-            }
+        res = {
+            'code': 1003,
+            'msg': '复制失败',
+            'data': None
+        }
+        if not self.copy(obj, Project, ProjectModelSerializer, self.validate):
+            return Response(res)
+
+        Models = [Prototype, UML, Document]
+        Serializers = [PrototypeModelSerializer, UMLModelSerializer, DocumentModelSerializer]
+        for i in range(0, 3):
+            for obj in Models[i].objects.filter(project_id=pk):
+                if not self.copy(obj, Models[i], Serializers[i], self.sub_validate):
+                    return Response(res)
+
+        res = {
+            'code': 1001,
+            'msg': '复制成功',
+            'data': None
+        }
         return Response(res)
 
 
