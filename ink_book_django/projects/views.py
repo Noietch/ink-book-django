@@ -255,10 +255,12 @@ class ProjectDetailAPIView(DetailAPIView):
         objects2 = Project.objects.filter(team_id=pk, name__contains=search_key, is_deleted=True).order_by(sort_key)
         serializer1 = PrototypeModelSerializer(objects1, many=True)
         serializer2 = PrototypeModelSerializer(objects2, many=True)
-        if order == 2:
+        if order == 1:
             data = [serializer1.data, serializer2.data]
-        else:
+        elif order == 2:
             data = [serializer1.data.__reversed__(), serializer2.data.__reversed__()]
+        else:
+            return Response({'code': 1002, 'msg': '排序错误', 'data': None})
         res = {
             'code': 1001,
             'msg': '查询成功',
