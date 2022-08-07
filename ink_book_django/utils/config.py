@@ -3,8 +3,5 @@ email_config = {
     "authority_code": "EIIHGBDRVXXCFWMZ"
 }
 
-contract_path = "/home/ubuntu/static_resources/hotel_static/contract"
-img_path = "/home/ubuntu/static_resources/hotel_static/img"
-
-contract_url = "https://www.noietch.cn/resource/hotel_static/contract"
-img_url = "https://www.noietch.cn/resource/hotel_static/img"
+img_path = "/home/ubuntu/static_resources/files"
+img_url = "https://www.noietch.cn/resource/files"
