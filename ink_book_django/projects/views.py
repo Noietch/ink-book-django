@@ -2,9 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import Http404
 from json import loads, dumps
+from django.db.models import Model
 
 from .models import *
 from .serializers import *
+from groups.models import GroupsRelations
 from utils.secret import *
 from utils.config import *
 
@@ -454,6 +456,21 @@ class PrototypeInfoAPIView(APIView):
         return Response(res)
 
 
+class PrototypeUserAPIView(APIView):
+    def post(self, request):
+        try:
+            user_id = request.data.get('user_id')
+            prototype_id = request.data.get('prototype_id')
+            group_id = Project.objects.get(id=Prototype.objects.get(id=prototype_id).project_id).team_id
+        except Model.DoesNotExist:
+            return Response({'code': 1002, 'msg': '查询失败', 'data': None})
+        return Response({
+            'code': 1001,
+            'msg': '查询成功',
+            'data': GroupsRelations.objects.filter(user_id=user_id, group_id=group_id).exists()
+        })
+
+
 class UMLListAPIView(SubListAPIView):
     model = UML
     serializer = UMLModelSerializer
@@ -537,3 +554,4 @@ class PDFConvertor(APIView):
             print("PDFConvertor:", e)
             return Response({"code":1002,"msg":"导出失败","data":''})
             
+
