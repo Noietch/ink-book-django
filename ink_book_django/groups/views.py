@@ -130,12 +130,14 @@ class GroupsRelationsList(APIView):
 
 
 class Encryption(APIView):
+    authentication_classes = []
     def post(self, request):
         data = request.data.get('data')
         return Response({'code': 1001, 'msg': '加密成功', 'data': des_encrypt(data)})
 
 
 class Decrypt(APIView):
+    authentication_classes = []
     def post(self, request):
         data = request.data.get('data')
         try:

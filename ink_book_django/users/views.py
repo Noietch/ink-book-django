@@ -1,4 +1,3 @@
-import utils.html_content as email_content
 from .extensions.jwt_auth import create_token
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
@@ -8,27 +7,44 @@ from utils.mailsender import MailSender
 from utils.random_generator import get_verification_code
 from utils.config import email_config, img_path, img_url
 from utils.image_utils import image_save
+from groups.models import Groups,GroupsRelations
+
+import utils.html_content as email_content
 import time
 import os
 
 
 class UserList(APIView):
     authentication_classes = []
+
     def get(self, request):
         users = Users.objects.all()
         serializer = UserSerializer(users, many=True)
         return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
 
     def post(self, request):
-        email = request.data.get("email")
-        password = request.data.get("password")
-        cur_user = Users.objects.filter(username__exact=email)
-        if cur_user.exists():
-            return Response({'code': 1002, 'msg': '用户名已存在', 'data': ''})
-        new_user = Users.objects.create_user(username=email, email=email, password=password)
-        new_user.save()
-        serializer = UserSerializer(new_user)
-        return Response({'code': 1001, 'msg': '注册成功', 'data': serializer.data})
+        try:
+            email = request.data.get("email")
+            password = request.data.get("password")
+            cur_user = Users.objects.filter(username__exact=email)
+            if cur_user.exists():
+                return Response({'code': 1002, 'msg': '用户名已存在', 'data': ''})
+            new_user = Users.objects.create_user(username=email, email=email, password=password)
+            new_user.save()
+
+            user = Users.objects.filter(username__exact=email)[0]
+            group = Groups.objects.create(name=email, creator=user.id)
+            group.save()
+            group_id = Groups.objects.filter(name=email, creator=user.id)[0].id
+            group_relations = GroupsRelations.objects.create(user_id=user.id, group_id=group_id, status="管理员")
+            group_relations.save()
+            user.cur_group = group_id
+            user.save()
+            serializer = UserSerializer(user)
+            return Response({'code': 1001, 'msg': '注册成功', 'data': serializer.data})
+        except Exception as e:
+            print(e)
+            return Response({'code': 1001, 'msg': '注册失败', 'data': ''})
 
 
 class UserDetail(APIView):
@@ -54,6 +70,7 @@ class UserDetail(APIView):
 
 class UserLogin(APIView):
     authentication_classes = []
+
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -63,7 +80,7 @@ class UserLogin(APIView):
         except:
             return Response({'code': 1003, 'msg': '用户不存在', 'data': ''})
         cur_user = authenticate(username=email, password=password)
-        res = {'id':serializer.data.get('id')}
+        res = {'id': serializer.data.get('id')}
         if cur_user is not None:
             return Response({'code': 1001, 'msg': '登陆成功', 'data': create_token(res)})
         else:
@@ -82,6 +99,7 @@ class UserInfo(APIView):
 
 class UserPassword(APIView):
     authentication_classes = []
+
     def patch(self, request):
         try:
             email = request.data.get('email')
@@ -96,6 +114,7 @@ class UserPassword(APIView):
 
 class EmailVerification(APIView):
     authentication_classes = []
+
     def post(self, request):
         sender = email_config["email_sender"]
         receiver = request.data.get("email")
@@ -111,16 +130,17 @@ class EmailVerification(APIView):
 
 class UploadAvatar(APIView):
     authentication_classes = []
-    def post(self,request):
+
+    def post(self, request):
         try:
             user_id = request.POST.get('user_id')
             image = request.FILES.get("file")
             extension = os.path.splitext(image.name)[-1]
-            filename = "{}{}".format(time.time(),extension)
+            filename = "{}{}".format(time.time(), extension)
             path = os.path.join(img_path, filename)
             image_save(image, path)
-            url = os.path.join(img_url,filename)
-            user = Users.objects.get(pk = user_id)
+            url = os.path.join(img_url, filename)
+            user = Users.objects.get(pk=user_id)
             user.avatar = url
             user.save()
             return Response({'ret': 1001, 'msg': "上传成功", 'data': url})
