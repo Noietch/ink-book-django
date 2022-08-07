@@ -25,6 +25,7 @@ class Prototype(models.Model):
     width = models.IntegerField(default=1440)
     height = models.IntegerField(default=1024)
     components = models.TextField(null=True)
+    public = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "设计原型"
