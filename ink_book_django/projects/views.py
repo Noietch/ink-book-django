@@ -502,6 +502,28 @@ class DocumentDetailAPIView(SubDetailAPIView):
     serializer = DocumentModelSerializer
 
 
+class DocumentCenterAPIView(APIView):
+    def post(self, request, pk):
+        res = {"name": "documentMall", "label": "文档中心", "icon": "user", "url": "UserManage/UserManage"}
+        projects_all = []
+        for project in Project.objects.filter(team_id=pk):
+            pro_dict = {"name": project.name}
+            labels = []
+            for label in Document.LABELS:
+                label_dict = {"name": label}
+                documents_labels = []
+                documents = Project.objects.filter(label=label)
+                for document in documents:
+                    documents_labels.append(document.get_info())
+                label_dict['children'] = documents_labels
+                labels.append(label_dict)
+            pro_dict['children'] = labels
+            projects_all.append(pro_dict)
+        res['children'] = projects_all
+        return Response({'code': 1001, 'msg': '查询成功', 'data': res})
+
+
+
 class PDFConvertor(APIView):
     def post(self, request):
         try:
