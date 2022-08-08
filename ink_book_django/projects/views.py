@@ -250,7 +250,7 @@ class ProjectDetailAPIView(DetailAPIView):
         try:
             order = request.data['desc']
         except:
-            order = 1
+            order = 2
         objects1 = Project.objects.filter(team_id=pk, name__contains=search_key, is_deleted=False).order_by(sort_key)
         objects2 = Project.objects.filter(team_id=pk, name__contains=search_key, is_deleted=True).order_by(sort_key)
         serializer1 = PrototypeModelSerializer(objects1, many=True)
