@@ -219,10 +219,12 @@ class FileSystemDetail(APIView):
 class GroupTreeFile(APIView):
     def post(self, request):
         try:
+            
             group_id = request.data.get('group_id')
             project_name = request.data.get('project_name')
             file_name = request.data.get('file_name')
 
+            print(group_id,project_name,file_name)
             project = Project.objects.get(Q(team_id__exact=group_id)&Q(name__exact=project_name))
 
             # 新建一个和团队绑定的文件

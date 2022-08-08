@@ -36,6 +36,7 @@ class Prototype(models.Model):
     height = models.IntegerField(default=1024)
     components = models.TextField(null=True)
     public = models.BooleanField(default=False)
+    img_path = models.CharField(max_length=100, null=True)
 
     class Meta:
         verbose_name = "设计原型"
