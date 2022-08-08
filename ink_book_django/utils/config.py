@@ -13,32 +13,9 @@ default_file_system = {'name': '文档中心', 'id': 1, 'isProject': False, 'isL
 
 
 if __name__ == '__main__':
-    import json
-    import time
 
-    new_file = {
-        "name": "Readme.md",
-        "id": int(time.time()),
-        "dragDisabled": True,
-        "editNodeDisabled": True,
-        "delNodeDisabled": True,
-        "isLeaf": True
-    }
-    project_name = "项目1"
-    with open("tree.txt",encoding="utf-8") as f:
-        file_system = json.loads(f.read())
-        dir_list = file_system["children"][0]["children"][0]["children"]
-        for dir in dir_list:
-            if dir["name"] == "项目文档区":
-                for project in dir["children"]:
-                    if project["name"] == project_name:
-                        new_file = {
-                            "name": "Readme.md",
-                            "id": int(time.time()),
-                            "dragDisabled": True,
-                            "editNodeDisabled": True,
-                            "delNodeDisabled": True,
-                            "isLeaf": True
-                        }
-                    project["children"].append(new_file)
-                    print(project["children"])
+    dir_list = default_file_system["children"]
+    for dir in dir_list:
+        if dir["name"] == "项目文档区":
+            print(dir["children"])
+
