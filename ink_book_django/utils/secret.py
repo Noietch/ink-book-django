@@ -17,4 +17,20 @@ def des_decrypt(s, secret_key="iloveyou"):
 
 
 if __name__ == '__main__':
-    pass
+    import time
+    import json
+
+    with open("tree.txt", encoding='utf-8') as f:
+        file_system = json.loads(f.read())
+        dir_list = file_system["children"][0]["children"][0]["children"]
+        for dir in dir_list:
+            if dir["name"] == "项目文档区":
+                new_file = {
+                    "id": int(time.time()),
+                    "isLeaf": True,
+                    "name": "团队介绍.md",
+                    "pid": int(time.time())
+                }
+                target = dir["children"][0]["children"]
+                target.append(new_file)
+        print(json.dumps(file_system, ensure_ascii=False))

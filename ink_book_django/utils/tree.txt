@@ -1,0 +1,33 @@
+{
+  "name": "文档中心",
+  "id": 1,
+  "isProject": false,
+  "isLeaf": false,
+  "dragDisabled": true,
+  "addTreeNodeDisabled": false,
+  "addLeafNodeDisabled": false,
+  "editNodeDisabled": true,
+  "delNodeDisabled": true,
+  "children": [
+    {
+      "name": "项目文档区",
+      "id": 2,
+      "isLeaf": false,
+      "isProject": false,
+      "dragDisabled": true,
+      "addTreeNodeDisabled": true,
+      "addLeafNodeDisabled": false,
+      "editNodeDisabled": true,
+      "delNodeDisabled": true,
+      "children":[]
+    },
+    {
+      "name": "Readme.md",
+      "id": 3,
+      "dragDisabled": true,
+      "editNodeDisabled": true,
+      "delNodeDisabled": true,
+      "isLeaf": true
+    }
+  ]
+}

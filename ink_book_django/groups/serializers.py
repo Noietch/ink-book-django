@@ -6,6 +6,7 @@ class GroupsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Groups
         fields = "__all__"
+        exclude = ('file_system',)
 
 
 class GroupsRelationsSerializer(serializers.ModelSerializer):

@@ -1,6 +1,6 @@
 from rest_framework.serializers import *
 
-from .views import *
+from .models import Project, Prototype, UML, Document
 
 
 class ProjectModelSerializer(ModelSerializer):
