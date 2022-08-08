@@ -11,4 +11,5 @@ urlpatterns = [
     path(r'member-list/', MemberList.as_view()),
     path(r'groups-relations-detail/', GroupsRelationsDetail.as_view()),
     path(r'file-system-detail/<int:pk>/', FileSystemDetail.as_view()),
+    path(r'GroupTreeFile/',GroupTreeFile.as_view()),
 ]
