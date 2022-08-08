@@ -1,15 +1,14 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.http import Http404
-from json import loads, dumps
-from django.db.models import Model
-
 from .models import *
 from .serializers import *
 from groups.models import GroupsRelations
 from utils.secret import *
 from utils.config import *
 from utils.image_utils import base64_image
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Model
+from django.db.models import Q
 
 import pdfkit
 import time
@@ -342,6 +341,37 @@ class ProjectCopyAPIView(APIView):
             'data': data
         }
         return Response(res)
+
+
+class ProjectStarListAPIView(APIView):
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        project_id = request.data.get('project_id')
+        if StarProject.objects.filter(Q(user_id__exact=user_id) & Q(project_id__exact=project_id)).exists():
+            return Response({'code': 1002, 'msg': '已收藏该项目', 'data': None})
+        else:
+            serializer = StarProjectModelSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'code': 1001, 'msg': '收藏成功', 'data': serializer.data})
+            else:
+                return Response({'code': 1003, 'msg': '收藏失败', 'data': serializer.data})
+
+
+class ProjectStarDetailAPIView(APIView):
+    def get(self, request, pk):
+        serializer = ProjectModelSerializer(StarProject.objects.filter(user_id=pk), many=True)
+        return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
+
+    def delete(self, request, pk):
+        user_id = request.data.get('user_id')
+        project_id = request.data.get('project_id')
+        if not StarProject.objects.filter(Q(user_id__exact=user_id) & Q(project_id__exact=project_id)).exists():
+            return Response({'code': 1002, 'msg': '未收藏该项目', 'data': None})
+        else:
+            star = StarProject.objects.get(Q(user_id__exact=user_id) & Q(project_id__exact=project_id))
+            star.delete()
+            return Response({'code': 1001, 'msg': '删除成功', 'data': None})
 
 
 class PrototypeListAPIView(SubListAPIView):

@@ -10,6 +10,13 @@ class ProjectModelSerializer(ModelSerializer):
         fields = "__all__"
 
 
+class StarProjectModelSerializer(ModelSerializer):
+
+    class Meta:
+        model = StarProject
+        fields = "__all__"
+
+
 class PrototypeModelSerializer(ModelSerializer):
 
     class Meta:
