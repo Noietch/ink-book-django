@@ -18,6 +18,7 @@ class Groups(models.Model):
     name = models.CharField(max_length=50)
     creator = models.IntegerField()
     avatar = models.TextField(null=True)
+    file_system = models.TextField(null=True)
 
 
 class GroupsRelations(models.Model):

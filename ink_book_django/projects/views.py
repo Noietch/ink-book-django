@@ -6,7 +6,7 @@ from django.db.models import Model
 
 from .models import *
 from .serializers import *
-from groups.models import GroupsRelations
+from groups.models import *
 from utils.secret import *
 from utils.config import *
 from utils.image_utils import base64_image
@@ -14,6 +14,7 @@ from utils.image_utils import base64_image
 import pdfkit
 import time
 import os
+
 
 # Create your views here.
 class ListAPIView(APIView):
@@ -469,6 +470,7 @@ class PrototypeInfoAPIView(APIView):
 
 class PrototypeUserAPIView(APIView):
     authentication_classes = []
+
     def post(self, request):
         user_id = request.data.get('user_id')
         prototype_id = request.data.get('prototype_id')
@@ -516,11 +518,37 @@ class DocumentListAPIView(SubListAPIView):
                     'data': serializer.data
                 }
             else:
+                # 保存文档信息
                 serializer.save()
+
+                # 对于话题信息进行加密
                 obj = Document.objects.get(id=serializer.data['id'])
                 obj.encryption = des_encrypt(str(obj.id) + '-' + str(obj.project_id), "document")
                 obj.save()
                 serializer = DocumentModelSerializer(instance=obj)
+
+                # 修改文件中心目录结构
+                file_id = serializer.data.get('id')
+                encryption = serializer.data.get('encryption')
+                project = Project.objects.get(project_id=serializer.data.get('project_id'))
+                group = Groups.objects.get(id=project.team_id)
+
+                # 修改树形结构
+                file_system = json.loads(group.file_system)
+                dir_list = file_system["children"][0]["children"][0]["children"]
+                for dir in dir_list:
+                    if dir["name"] == "项目文档区":
+                        new_file = {
+                            "id": int(time.time()),
+                            "isLeaf": True,
+                            "tiptap": serializer.data.get('encryption'),
+                            "name": "团队介绍.md",
+                            "pid": int(time.time())
+                        }
+                        target = dir["children"][0]["children"]
+                        target.append(new_file)
+                group.file_system = json.dumps(file_system, ensure_ascii=False)
+
                 res = {
                     'code': 1001,
                     'msg': '添加成功',
@@ -533,6 +561,9 @@ class DocumentListAPIView(SubListAPIView):
                 'data': serializer.data
             }
         return Response(res)
+
+    def patch(self, request):
+        pass
 
 
 class DocumentDetailAPIView(SubDetailAPIView):
@@ -559,7 +590,6 @@ class DocumentCenterAPIView(APIView):
             projects_all.append(pro_dict)
         res['children'] = projects_all
         return Response({'code': 1001, 'msg': '查询成功', 'data': res})
-
 
 
 class PDFConvertor(APIView):
