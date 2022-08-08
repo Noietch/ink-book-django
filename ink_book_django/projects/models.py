@@ -69,7 +69,7 @@ class Document(models.Model):
         verbose_name = "文档"
         verbose_name_plural = verbose_name
 
-
+#
 # class Component(models.Model):
 #     acceptRatio = models.BooleanField()
 #     active = models.BooleanField()
