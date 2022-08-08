@@ -238,11 +238,12 @@ class ProjectListAPIView(ListAPIView):
     serializer = ProjectModelSerializer
 
     def post(self, request):
-        serializer = ProjectModelSerializer(data=request.data)
-        if not self.validate(serializer):
-            return Response({'code': 1002, 'msg': '项目已存在', 'data': ''})
+        serializer = ProjectModelSerializer(data=request.data)      
 
         if serializer.is_valid():
+            if not self.validate(serializer):
+                return Response({'code': 1002, 'msg': '项目已存在', 'data': ''})
+
             serializer.save()
             group = Groups.objects.get(id=serializer.data.get('team_id'))
             file_system = loads(group.file_system)
@@ -262,7 +263,9 @@ class ProjectListAPIView(ListAPIView):
                         "children": []
                     }
                     dir["children"].append(new_dir)
+            print(file_system)
             group.file_system = dumps(file_system, ensure_ascii=False)
+            group.save()
             asyncio.run(send_to_ws(serializer.data.get('team_id'), file_system))
             return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
         return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
@@ -414,25 +417,27 @@ class PrototypeListAPIView(SubListAPIView):
     serializer = PrototypeModelSerializer
 
     def get(self, request):
-        objects1 = self.model.objects.filter(is_deleted=False)
-        serializer1 = self.serializer(objects1, many=True)
-        # for data in serializer1.data:
-        #     try:
-        #         data['components'] = loads(loads(data['components']))
-        #     except:
-        #         pass
-        objects2 = self.model.objects.filter(is_deleted=True)
-        serializer2 = self.serializer(objects2, many=True)
-        # for data in serializer2.data:
-        #     try:
-        #         data['components'] = loads(loads(data['components']))
-        #     except:
-        #         pass
-        res = {
-            'code': 1001,
-            'msg': '查询成功',
-            'data': [serializer1.data, serializer2.data]
-        }
+        objects1 = Prototype.objects.filter(is_deleted=False)
+        serializer1 = PrototypeModelSerializer(objects1, many=True)
+        objects2 = Prototype.objects.filter(is_deleted=True)
+        serializer2 = PrototypeModelSerializer(objects2, many=True)
+        res = {'code': 1001, 'msg': '查询成功', 'data': [serializer1.data, serializer2.data]}
+        return Response(res)
+
+    def post(self, request):
+        serializer = PrototypeModelSerializer(data=request.data)
+        if serializer.is_valid():
+            if not self.validate(serializer):
+                res = {'code': 1003, 'msg': '命名重复', 'data': serializer.data}
+            else:
+                serializer.save()
+                obj = Prototype.objects.get(id=serializer.data['id'])
+                obj.encryption = des_encrypt(F'{obj.id}-prototype', 'prototype')
+                obj.save()
+                serializer = PrototypeModelSerializer(obj)
+                res = {'code': 1001, 'msg': '添加成功', 'data': serializer.data}
+        else:
+            res = {'code': 1002, 'msg': '添加失败', 'data': serializer.data}
         return Response(res)
 
 
@@ -611,6 +616,7 @@ class DocumentListAPIView(SubListAPIView):
                                 }
                                 project_ele["children"].append(new_file)
                 group.file_system = json.dumps(file_system, ensure_ascii=False)
+                group.save()
                 asyncio.run(send_to_ws(serializer.data.get('team_id'), file_system))
 
                 res = {

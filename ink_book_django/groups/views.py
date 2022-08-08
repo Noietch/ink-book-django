@@ -257,6 +257,7 @@ class GroupTreeFile(APIView):
                             }
                             project["children"].append(new_file)
             group.file_system = dumps(file_system, ensure_ascii=False)
+            group.save()
             asyncio.run(send_to_ws(group_id, file_system))
             return Response({"code": 1001, "msg": "新建成功", "data": ""})
         except Exception as e:

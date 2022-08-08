@@ -28,8 +28,10 @@ class StarProject(models.Model):
 
 class Prototype(models.Model):
     name = models.CharField(max_length=200)
+    encryption = models.CharField(null=True, max_length=255)
     route = models.CharField(max_length=255, null=True)
     project_id = models.IntegerField(default=0)
+
     is_deleted = models.BooleanField(default=False)
     avatar = models.TextField(default='https://dn-st.teambition.net/teambition/images/logo3.c69aba1a.jpg')
     width = models.IntegerField(default=1440)
