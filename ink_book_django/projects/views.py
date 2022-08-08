@@ -1,9 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Model
+from django.db.models import Q
 
-from .models import Project, Prototype, UML, Document
-from .serializers import ProjectModelSerializer, PrototypeModelSerializer, UMLModelSerializer, DocumentModelSerializer
+from .models import Project, Prototype, UML, Document, StarProject
+from .serializers import ProjectModelSerializer, PrototypeModelSerializer, UMLModelSerializer, DocumentModelSerializer, StarProjectModelSerializer
 from groups.models import *
 from utils.secret import *
 from utils.config import *

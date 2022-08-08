@@ -16,6 +16,15 @@ class Project(models.Model):
         verbose_name_plural = verbose_name
 
 
+class StarProject(models.Model):
+    user_id = models.IntegerField(default=0)
+    project_id = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = "收藏项目"
+        verbose_name_plural = verbose_name
+
+
 class Prototype(models.Model):
     name = models.CharField(max_length=200)
     route = models.CharField(max_length=255, null=True)
