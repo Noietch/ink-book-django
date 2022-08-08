@@ -660,6 +660,10 @@ class DocumentCenterAPIView(APIView):
         res['children'] = projects_all
         return Response({'code': 1001, 'msg': '查询成功', 'data': res})
 
+class DocumentCreator(APIView):
+    def post(self,request):
+        pass
+
 
 class PDFConvertor(APIView):
     def post(self, request):
