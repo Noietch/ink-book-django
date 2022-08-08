@@ -32,20 +32,19 @@ class GroupList(APIView):
         if group.exists():
             return Response({'code': 1004, 'msg': '群组名已存在', 'data': ''})
 
-        try:
-            # 验证数据的合法性
-            if not serializer.is_valid():
-                serializer.save()
-                return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
-
+        # try:
+        # 验证数据的合法性
+        if serializer.is_valid():
             # 更改用户的目前的群组
+            serializer.save()
             cur_group = Groups.objects.filter(name__exact=request.data.get("name"))
             user.cur_group = cur_group[0].id
             user.save()
 
             # 新建一个和团队绑定的文件
-            doc_serializer = DocumentModelSerializer({"name": "Readme.md",
-                                     "team_id": serializer.data.get('id')})
+            doc_serializer = DocumentModelSerializer(data={"name": "Readme.md",
+                                        "team_id": serializer.data.get('id')})
+            doc_serializer.is_valid()                        
             doc_serializer.save()
 
             # 新建文件的聊天室号码
@@ -60,10 +59,12 @@ class GroupList(APIView):
             group.save()
 
             return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
-
-        except Exception as e:
-            print(e)
+        else:    
             return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
+
+        # except Exception as e:
+        #     print(e)
+        #     return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
 
 
 class UserGroup(APIView):
