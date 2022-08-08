@@ -239,6 +239,9 @@ class ProjectListAPIView(ListAPIView):
 
     def post(self, request):
         serializer = ProjectModelSerializer(data=request.data)
+        if not self.validate(serializer):
+            return Response({'code': 1001, 'msg': '项目已存在', 'data': ''})
+
         if serializer.is_valid():
             serializer.save()
             group = Groups.objects.get(id=serializer.data.get('team_id'))
@@ -596,8 +599,8 @@ class DocumentListAPIView(SubListAPIView):
                 dir_list = file_system["children"]
                 for dir in dir_list:
                     if dir["name"] == "项目文档区":
-                        for project in dir["children"]:
-                            if project["name"] == project_name:
+                        for project_ele in dir["children"]:
+                            if project_ele["name"] == project.name:
                                 new_file = {
                                     "name": obj.name,
                                     "id": int(time.time()),
@@ -606,7 +609,7 @@ class DocumentListAPIView(SubListAPIView):
                                     "delNodeDisabled": True,
                                     "isLeaf": True
                                 }
-                                project["children"].append(new_file)
+                                project_ele["children"].append(new_file)
                 group.file_system = json.dumps(file_system, ensure_ascii=False)
                 asyncio.run(send_to_ws(serializer.data.get('team_id'), file_system))
 
