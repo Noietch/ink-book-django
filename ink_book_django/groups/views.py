@@ -196,14 +196,6 @@ class MemberList(APIView):
 
 
 class FileSystemDetail(APIView):
-    def get(self, request, pk):
-        try:
-            group = Groups.objects.get(pk=pk)
-            return Response({'code': 1001, 'msg': '查询成功', 'data': loads(group.file_system)})
-        except Exception as e:
-            print(e)
-            return Response({'code': 1002, 'msg': '团队不存在', 'data': ''})
-
     def post(self, request, pk):
         try:
             group = Groups.objects.get(pk=pk)
@@ -211,6 +203,16 @@ class FileSystemDetail(APIView):
             group.file_system = tree
             group.save()
             return Response({'code': 1001, 'msg': '保存成功', 'data': tree})
+        except Exception as e:
+            print(e)
+            return Response({'code': 1002, 'msg': '团队不存在', 'data': ''})
+
+
+class FileSystemTree(APIView):
+    def post(self, request):
+        try:
+            group = Groups.objects.get(pk=request.data.get('group_id'))
+            return Response({'code': 1001, 'msg': '查询成功', 'data': loads(group.file_system)})
         except Exception as e:
             print(e)
             return Response({'code': 1002, 'msg': '团队不存在', 'data': ''})
