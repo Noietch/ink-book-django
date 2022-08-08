@@ -7,6 +7,8 @@ urlpatterns = [
     path(r'projects/', ProjectListAPIView.as_view()),
     path(r'projects/copy/', ProjectCopyAPIView.as_view()),
     path(r'projects/<int:pk>/', ProjectDetailAPIView.as_view()),
+    path(r'projects/star/', ProjectStarListAPIView.as_view()),
+    path(r'projects/star/<int:pk>/', ProjectStarDetailAPIView.as_view()),
     path(r'prototypes/', PrototypeListAPIView.as_view()),
     path(r'prototypes/info/', PrototypeInfoAPIView.as_view()),
     path(r'prototypes/users/', PrototypeUserAPIView.as_view()),

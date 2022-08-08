@@ -1,12 +1,19 @@
 from rest_framework.serializers import *
 
-from .models import Project, Prototype, UML, Document
+from .models import Project, Prototype, UML, Document, StarProject
 
 
 class ProjectModelSerializer(ModelSerializer):
 
     class Meta:
         model = Project
+        fields = "__all__"
+
+
+class StarProjectModelSerializer(ModelSerializer):
+
+    class Meta:
+        model = StarProject
         fields = "__all__"
 
 
