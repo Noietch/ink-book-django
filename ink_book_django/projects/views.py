@@ -4,17 +4,20 @@ from django.db.models import Model
 from django.db.models import Q
 
 from .models import Project, Prototype, UML, Document, StarProject
-from .serializers import ProjectModelSerializer, PrototypeModelSerializer, UMLModelSerializer, DocumentModelSerializer, StarProjectModelSerializer
+from .serializers import ProjectModelSerializer, PrototypeModelSerializer, UMLModelSerializer, DocumentModelSerializer, \
+    StarProjectModelSerializer
 from groups.models import *
 from utils.secret import *
 from utils.config import *
 from utils.image_utils import base64_image
 from utils.websocket_utils import send_to_ws
+from json import dumps, loads
 
 import pdfkit
 import time
 import os
 import asyncio
+
 
 # Create your views here.
 class ListAPIView(APIView):
@@ -233,6 +236,36 @@ class SubDetailAPIView(DetailAPIView):
 class ProjectListAPIView(ListAPIView):
     model = Project
     serializer = ProjectModelSerializer
+
+    def post(self, request):
+        serializer = ProjectModelSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            group = Groups.objects.get(id=serializer.data.get('team_id'))
+            file_system = loads(group.file_system)
+            dir_list = file_system["children"][0]["children"][0]["children"]
+            for dir in dir_list:
+                if dir["name"] == "项目文档区":
+                    for project in dir["children"]:
+                        if project["name"] == project_name:
+                            new_file = {
+                                "name": serializer.data.get('name'),
+                                "id": int(time.time()),
+                                "isLeaf": False,
+                                "isProject": True,
+                                "dragDisabled": True,
+                                "addTreeNodeDisabled": True,
+                                "addLeafNodeDisabled": False,
+                                "editNodeDisabled": True,
+                                "delNodeDisabled": True,
+                                "children": []
+                            }
+                            project["children"].append(new_file)
+            group.file_system = dumps(file_system, ensure_ascii=False)
+            asyncio.run(send_to_ws(serializer.data.get('team_id'), file_system))
+
+            return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
+        return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
 
 
 class ProjectDetailAPIView(DetailAPIView):
@@ -578,7 +611,7 @@ class DocumentListAPIView(SubListAPIView):
                                 }
                                 project["children"].append(new_file)
                 group.file_system = json.dumps(file_system, ensure_ascii=False)
-                asyncio.run(send_to_ws(serializer.data.get('team_id'),file_system))
+                asyncio.run(send_to_ws(serializer.data.get('team_id'), file_system))
 
                 res = {
                     'code': 1001,

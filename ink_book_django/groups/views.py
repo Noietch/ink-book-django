@@ -223,7 +223,7 @@ class GroupTreeFile(APIView):
             project_name = request.data.get('project_name')
             file_name = request.data.get('file_name')
 
-            project = Project.objects.get(Q(team_id__exact=group_id)&Q(name__exact=project_name))
+            project = Project.objects.get(Q(team_id__exact=group_id) & Q(name__exact=project_name))
 
             # 新建一个和团队绑定的文件
             doc_serializer = DocumentModelSerializer(data={"name": file_name,
@@ -256,7 +256,7 @@ class GroupTreeFile(APIView):
                             project["children"].append(new_file)
             group.file_system = dumps(file_system, ensure_ascii=False)
             asyncio.run(send_to_ws(group_id, file_system))
-            return Response({"code":1001,"msg":"新建成功","data":""})
+            return Response({"code": 1001, "msg": "新建成功", "data": ""})
         except Exception as e:
             print(e)
             return Response({"code": 1002, "msg": "新建失败", "data": ""})
