@@ -200,8 +200,10 @@ class FileSystemDetail(APIView):
         try:
             group = Groups.objects.get(pk=pk)
             tree = request.data.get('tree')
-            group.file_system = tree
+            group.file_system = dumps(tree)
             group.save()
+
+            asyncio.run(send_to_ws(pk, tree))
             return Response({'code': 1001, 'msg': '保存成功', 'data': tree})
         except Exception as e:
             print(e)
@@ -264,3 +266,22 @@ class GroupTreeFile(APIView):
         except Exception as e:
             print(e)
             return Response({"code": 1002, "msg": "新建失败", "data": ""})
+
+
+class DocumentCreator(APIView):
+    def post(self,request):
+        group_id = request.data.get('group_id')
+        file_name = request.data.get('file_name')
+
+        # 新建一个和团队绑定的文件
+        doc_serializer = DocumentModelSerializer(data={"name": file_name,
+                                                       "team_id": group_id})
+        doc_serializer.is_valid()
+        doc_serializer.save()
+
+        # 新建文件的聊天室号码
+        doc = Document.objects.get(id=doc_serializer.data.get('id'))
+        doc.encryption = des_encrypt(str(doc.id) + 'document', "document")
+        doc.save()
+
+        return  Response({"code": 1001, "msg": "导出成功", "data": DocumentModelSerializer(doc)})
