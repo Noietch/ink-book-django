@@ -243,24 +243,22 @@ class ProjectListAPIView(ListAPIView):
             serializer.save()
             group = Groups.objects.get(id=serializer.data.get('team_id'))
             file_system = loads(group.file_system)
-            dir_list = file_system["children"][0]["children"][0]["children"]
+            dir_list = file_system["children"]
             for dir in dir_list:
                 if dir["name"] == "项目文档区":
-                    for project in dir["children"]:
-                        if project["name"] == project_name:
-                            new_file = {
-                                "name": serializer.data.get('name'),
-                                "id": int(time.time()),
-                                "isLeaf": False,
-                                "isProject": True,
-                                "dragDisabled": True,
-                                "addTreeNodeDisabled": True,
-                                "addLeafNodeDisabled": False,
-                                "editNodeDisabled": True,
-                                "delNodeDisabled": True,
-                                "children": []
-                            }
-                            project["children"].append(new_file)
+                    new_dir = {
+                        "name": serializer.data.get('name'),
+                        "id": int(time.time()),
+                        "isLeaf": False,
+                        "isProject": True,
+                        "dragDisabled": True,
+                        "addTreeNodeDisabled": True,
+                        "addLeafNodeDisabled": False,
+                        "editNodeDisabled": True,
+                        "delNodeDisabled": True,
+                        "children": []
+                    }
+                    dir["name"].append(new_file)
             group.file_system = dumps(file_system, ensure_ascii=False)
             asyncio.run(send_to_ws(serializer.data.get('team_id'), file_system))
 
@@ -596,7 +594,7 @@ class DocumentListAPIView(SubListAPIView):
 
                 # 修改树形结构
                 file_system = json.loads(group.file_system)
-                dir_list = file_system["children"][0]["children"][0]["children"]
+                dir_list = file_system["children"]
                 for dir in dir_list:
                     if dir["name"] == "项目文档区":
                         for project in dir["children"]:

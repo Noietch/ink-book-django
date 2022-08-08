@@ -240,7 +240,7 @@ class GroupTreeFile(APIView):
             # 更改json文件
             group = Groups.objects.get(id=group_id)
             file_system = loads(group.file_system)
-            dir_list = file_system["children"][0]["children"][0]["children"]
+            dir_list = file_system["children"]
             for dir in dir_list:
                 if dir["name"] == "项目文档区":
                     for project in dir["children"]:
