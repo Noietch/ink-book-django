@@ -13,5 +13,6 @@ default_file_system = {'name': '文档中心', 'id': 1, 'isProject': False, 'isL
 
 
 if __name__ == '__main__':
-
-    print(json.dumps(default_file_system, ensure_ascii=False))
+    import json
+    default_file_system["children"][1]["tiptap"] = "132"
+    print(json.dumps(default_file_system,ensure_ascii=False))
