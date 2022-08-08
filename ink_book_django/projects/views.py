@@ -8,11 +8,12 @@ from groups.models import *
 from utils.secret import *
 from utils.config import *
 from utils.image_utils import base64_image
+from utils.websocket_utils import send_to_ws
 
 import pdfkit
 import time
 import os
-
+import asyncio
 
 # Create your views here.
 class ListAPIView(APIView):
@@ -525,8 +526,6 @@ class DocumentListAPIView(SubListAPIView):
                 serializer = DocumentModelSerializer(instance=obj)
 
                 # 修改文件中心目录结构
-                file_id = serializer.data.get('id')
-                encryption = serializer.data.get('encryption')
                 project = Project.objects.get(project_id=serializer.data.get('project_id'))
                 group = Groups.objects.get(id=project.team_id)
 
@@ -545,6 +544,7 @@ class DocumentListAPIView(SubListAPIView):
                         target = dir["children"][0]["children"]
                         target.append(new_file)
                 group.file_system = json.dumps(file_system, ensure_ascii=False)
+                asyncio.run(send_to_ws(serializer.data.get('team_id'),file_system))
 
                 res = {
                     'code': 1001,
