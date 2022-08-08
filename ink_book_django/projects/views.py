@@ -608,6 +608,8 @@ class DocumentListAPIView(SubListAPIView):
                                 new_file = {
                                     "name": obj.name,
                                     "id": int(time.time()),
+                                    "file_id": obj.id,
+                                    "encryption": obj.encryption,
                                     "dragDisabled": True,
                                     "editNodeDisabled": True,
                                     "delNodeDisabled": True,

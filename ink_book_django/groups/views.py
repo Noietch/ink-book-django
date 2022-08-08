@@ -196,8 +196,9 @@ class MemberList(APIView):
 
 
 class FileSystemDetail(APIView):
-    def post(self, request, pk):
+    def post(self, request):
         try:
+            pk = request.data.get('group_id')
             group = Groups.objects.get(pk=pk)
             tree = request.data.get('tree')
             group.file_system = dumps(tree)
@@ -253,6 +254,8 @@ class GroupTreeFile(APIView):
                             new_file = {
                                 "name": file_name,
                                 "id": int(time.time()),
+                                "file_id": doc.id,
+                                "encryption":doc.encryption,
                                 "dragDisabled": True,
                                 "editNodeDisabled": True,
                                 "delNodeDisabled": True,
