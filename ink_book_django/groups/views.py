@@ -9,7 +9,7 @@ from django.db.models import Q
 from utils.config import default_file_system
 from projects.models import Document
 from projects.serializers import DocumentModelSerializer
-
+from json import dumps,loads
 
 class GroupList(APIView):
     def get(self, request):
@@ -54,8 +54,8 @@ class GroupList(APIView):
 
             # 更改json文件
             group = Groups.objects.get(id=serializer.data.get('id'))
-            default_file_system["children"][1]["tiptap"] = doc.encryption
-            group.file_system = default_file_system
+            default_file_system["children"][1]["tiptap"] = str(doc.encryption)
+            group.file_system = dumps(default_file_system, ensure_ascii=False)
             group.save()
 
             return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
@@ -194,7 +194,7 @@ class FileSystemDetail(APIView):
     def get(self, request, pk):
         try:
             group = Groups.objects.get(pk=pk)
-            return Response({'code': 1001, 'msg': '查询成功', 'data': group.file_system})
+            return Response({'code': 1001, 'msg': '查询成功', 'data': loads(group.file_system)})
         except Exception as e:
             print(e)
             return Response({'code': 1002, 'msg': '团队不存在', 'data': ''})
