@@ -243,7 +243,7 @@ class ProjectDetailAPIView(DetailAPIView):
         try:
             search_key = request.data['search']
         except:
-            search_key = ""
+            search_key = ''
         try:
             sort_key = request.data['sort']
         except:
@@ -254,8 +254,8 @@ class ProjectDetailAPIView(DetailAPIView):
             order = 2
         objects1 = Project.objects.filter(team_id=pk, name__contains=search_key, is_deleted=False).order_by(sort_key)
         objects2 = Project.objects.filter(team_id=pk, name__contains=search_key, is_deleted=True).order_by(sort_key)
-        serializer1 = PrototypeModelSerializer(objects1, many=True)
-        serializer2 = PrototypeModelSerializer(objects2, many=True)
+        serializer1 = ProjectModelSerializer(objects1, many=True)
+        serializer2 = ProjectModelSerializer(objects2, many=True)
         if order == 1:
             data = [serializer1.data, serializer2.data]
         elif order == 2:
