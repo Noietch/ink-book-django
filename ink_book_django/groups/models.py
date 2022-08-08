@@ -24,4 +24,3 @@ class GroupsRelations(models.Model):
     group_id = models.IntegerField()
     user_id = models.IntegerField()
     status = models.CharField(max_length=10)
-    
