@@ -258,10 +258,9 @@ class ProjectListAPIView(ListAPIView):
                         "delNodeDisabled": True,
                         "children": []
                     }
-                    dir["name"].append(new_file)
+                    dir["children"].append(new_dir)
             group.file_system = dumps(file_system, ensure_ascii=False)
             asyncio.run(send_to_ws(serializer.data.get('team_id'), file_system))
-
             return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
         return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
 
@@ -285,8 +284,8 @@ class ProjectDetailAPIView(DetailAPIView):
             order = 2
         objects1 = Project.objects.filter(team_id=pk, name__contains=search_key, is_deleted=False).order_by(sort_key)
         objects2 = Project.objects.filter(team_id=pk, name__contains=search_key, is_deleted=True).order_by(sort_key)
-        serializer1 = PrototypeModelSerializer(objects1, many=True)
-        serializer2 = PrototypeModelSerializer(objects2, many=True)
+        serializer1 = ProjectModelSerializer(objects1, many=True)
+        serializer2 = ProjectModelSerializer(objects2, many=True)
         if order == 1:
             data = [serializer1.data, serializer2.data]
         elif order == 2:
