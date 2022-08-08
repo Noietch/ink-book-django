@@ -5,6 +5,9 @@ from users.serializers import UserSerializer
 from utils.secret import *
 from users.models import *
 from django.db.models import Q
+from utils.config import default_file_system
+from projects.models import Document
+from projects.serializers import DocumentModelSerializer
 
 
 class GroupList(APIView):
@@ -39,11 +42,23 @@ class GroupList(APIView):
             user.cur_group = cur_group[0].id
             user.save()
 
-            # 设置文件的默认目录
-            group = Groups.objects.get(id=serializer.data.get('id'))
-            # group
+            # 新建一个和团队绑定的文件
+            doc_serializer = DocumentModelSerializer({"name": "Readme.md",
+                                     "team_id": serializer.data.get('id')})
+            doc_serializer.save()
 
-            return Response({'code': 1001, 'msg': '新建成功', 'data': })
+            # 新建文件的聊天室号码
+            doc = Document.objects.get(id=doc_serializer.data.get('id'))
+            doc.encryption = des_encrypt(str(doc.id) + 'document', "document")
+            doc.save()
+
+            # 更改json文件
+            group = Groups.objects.get(id=serializer.data.get('id'))
+            default_file_system["children"][1]["tiptap"] = doc.encryption
+            group.file_system = default_file_system
+            group.save()
+
+            return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
 
         except Exception as e:
             print(e)

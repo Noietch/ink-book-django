@@ -518,12 +518,11 @@ class DocumentListAPIView(SubListAPIView):
                     'data': serializer.data
                 }
             else:
-                # 保存文档信息
                 serializer.save()
 
                 # 对于话题信息进行加密
                 obj = Document.objects.get(id=serializer.data['id'])
-                obj.encryption = des_encrypt(str(obj.id) + '-' + str(obj.project_id), "document")
+                obj.encryption = des_encrypt(str(obj.id) + 'document', "document")
                 obj.save()
                 serializer = DocumentModelSerializer(instance=obj)
 
