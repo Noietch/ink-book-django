@@ -263,7 +263,6 @@ class ProjectListAPIView(ListAPIView):
                         "children": []
                     }
                     dir["children"].append(new_dir)
-            print(file_system)
             group.file_system = dumps(file_system, ensure_ascii=False)
             group.save()
             asyncio.run(send_to_ws(serializer.data.get('team_id'), file_system))
@@ -432,7 +431,7 @@ class PrototypeListAPIView(SubListAPIView):
             else:
                 serializer.save()
                 obj = Prototype.objects.get(id=serializer.data['id'])
-                obj.encryption = des_encrypt(F'{obj.id}-prototype', 'prototype')
+                obj.encryption = des_encrypt(str(obj.id))
                 obj.save()
                 serializer = PrototypeModelSerializer(obj)
                 res = {'code': 1001, 'msg': '添加成功', 'data': serializer.data}
