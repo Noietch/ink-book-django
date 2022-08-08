@@ -5,7 +5,6 @@ from .models import *
 class GroupsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Groups
-        fields = "__all__"
         exclude = ('file_system',)
 
 
