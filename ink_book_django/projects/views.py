@@ -1,11 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import Http404
-from json import loads, dumps
 from django.db.models import Model
 
-from .models import *
-from .serializers import *
+from .models import Project, Prototype, UML, Document
+from .serializers import ProjectModelSerializer, PrototypeModelSerializer, UMLModelSerializer, DocumentModelSerializer
 from groups.models import *
 from utils.secret import *
 from utils.config import *
