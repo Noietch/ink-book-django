@@ -431,7 +431,7 @@ class PrototypeListAPIView(SubListAPIView):
             else:
                 serializer.save()
                 obj = Prototype.objects.get(id=serializer.data['id'])
-                obj.encryption = des_encrypt(str(obj.id))
+                obj.encryption = str(des_encrypt(str(obj.id)))[2:-1]
                 obj.save()
                 serializer = PrototypeModelSerializer(obj)
                 res = {'code': 1001, 'msg': '添加成功', 'data': serializer.data}
@@ -595,7 +595,7 @@ class DocumentListAPIView(SubListAPIView):
                 serializer = DocumentModelSerializer(instance=obj)
 
                 # 修改文件中心目录结构
-                project = Project.objects.get(project_id=serializer.data.get('project_id'))
+                project = Project.objects.get(id=serializer.data.get('project_id'))
                 group = Groups.objects.get(id=project.team_id)
 
                 # 修改树形结构

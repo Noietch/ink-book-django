@@ -221,7 +221,6 @@ class FileSystemTree(APIView):
 class GroupTreeFile(APIView):
     def post(self, request):
         try:
-            
             group_id = request.data.get('group_id')
             project_name = request.data.get('project_name')
             file_name = request.data.get('file_name')
