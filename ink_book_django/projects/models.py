@@ -1,5 +1,5 @@
 from django.db import models
-from json import loads, dumps
+from django.utils import timezone
 
 
 # Create your models here.
@@ -10,6 +10,7 @@ class Project(models.Model):
     avatar = models.TextField(default='https://dn-st.teambition.net/teambition/images/logo1.a6464e9c.jpg')
     width = models.IntegerField(default=1440)
     height = models.IntegerField(default=1024)
+    create_time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "项目"
