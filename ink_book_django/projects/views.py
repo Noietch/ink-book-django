@@ -258,10 +258,9 @@ class ProjectListAPIView(ListAPIView):
                         "delNodeDisabled": True,
                         "children": []
                     }
-                    dir["name"].append(new_file)
+                    dir["children"].append(new_dir)
             group.file_system = dumps(file_system, ensure_ascii=False)
             asyncio.run(send_to_ws(serializer.data.get('team_id'), file_system))
-
             return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
         return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
 
