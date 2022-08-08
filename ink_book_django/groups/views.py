@@ -9,7 +9,7 @@ from django.db.models import Q
 from utils.config import default_file_system
 from projects.models import Document
 from projects.serializers import DocumentModelSerializer
-
+from json import dumps,loads
 
 class GroupList(APIView):
     def get(self, request):
@@ -32,20 +32,19 @@ class GroupList(APIView):
         if group.exists():
             return Response({'code': 1004, 'msg': '群组名已存在', 'data': ''})
 
-        try:
-            # 验证数据的合法性
-            if not serializer.is_valid():
-                serializer.save()
-                return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
-
+        # try:
+        # 验证数据的合法性
+        if serializer.is_valid():
             # 更改用户的目前的群组
+            serializer.save()
             cur_group = Groups.objects.filter(name__exact=request.data.get("name"))
             user.cur_group = cur_group[0].id
             user.save()
 
             # 新建一个和团队绑定的文件
-            doc_serializer = DocumentModelSerializer({"name": "Readme.md",
-                                     "team_id": serializer.data.get('id')})
+            doc_serializer = DocumentModelSerializer(data={"name": "Readme.md",
+                                        "team_id": serializer.data.get('id')})
+            doc_serializer.is_valid()                        
             doc_serializer.save()
 
             # 新建文件的聊天室号码
@@ -55,15 +54,17 @@ class GroupList(APIView):
 
             # 更改json文件
             group = Groups.objects.get(id=serializer.data.get('id'))
-            default_file_system["children"][1]["tiptap"] = doc.encryption
-            group.file_system = default_file_system
+            default_file_system["children"][1]["tiptap"] = str(doc.encryption)
+            group.file_system = dumps(default_file_system, ensure_ascii=False)
             group.save()
 
             return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
-
-        except Exception as e:
-            print(e)
+        else:    
             return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
+
+        # except Exception as e:
+        #     print(e)
+        #     return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
 
 
 class UserGroup(APIView):
@@ -193,7 +194,7 @@ class FileSystemDetail(APIView):
     def get(self, request, pk):
         try:
             group = Groups.objects.get(pk=pk)
-            return Response({'code': 1001, 'msg': '查询成功', 'data': group.file_system})
+            return Response({'code': 1001, 'msg': '查询成功', 'data': loads(group.file_system)})
         except Exception as e:
             print(e)
             return Response({'code': 1002, 'msg': '团队不存在', 'data': ''})

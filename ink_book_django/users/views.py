@@ -2,14 +2,21 @@ from .extensions.jwt_auth import create_token
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import *
+from .serializers import UserSerializer
+from .models import Users
+
 from utils.mailsender import MailSender
 from utils.random_generator import get_verification_code
-from utils.config import email_config, img_path, img_url
+from utils.config import *
+from utils.secret import *
 from utils.image_utils import image_save
-from groups.models import Groups,GroupsRelations
-
 import utils.html_content as email_content
+
+from groups.models import Groups,GroupsRelations
+from projects.serializers import DocumentModelSerializer
+from projects.models import Document
+
+from json import dumps
 import time
 import os
 
@@ -26,21 +33,50 @@ class UserList(APIView):
         try:
             email = request.data.get("email")
             password = request.data.get("password")
+
+            # 查询用户是否存在
             cur_user = Users.objects.filter(username__exact=email)
             if cur_user.exists():
                 return Response({'code': 1002, 'msg': '用户名已存在', 'data': ''})
+
+            # 创建新用户
             new_user = Users.objects.create_user(username=email, email=email, password=password)
             new_user.save()
 
+            # 给用户创建属于自己的团队
             user = Users.objects.filter(username__exact=email)[0]
             group = Groups.objects.create(name=email, creator=user.id)
             group.save()
+
+            # 让用户加入自己的团队
             group_id = Groups.objects.filter(name=email, creator=user.id)[0].id
             group_relations = GroupsRelations.objects.create(user_id=user.id, group_id=group_id, status="管理员")
             group_relations.save()
+
+            # 设置用户目前的团队就是自己的团队
             user.cur_group = group_id
             user.save()
+
+            # 返回用户的信息
             serializer = UserSerializer(user)
+
+            # 新建一个和团队绑定的文件
+            doc_serializer = DocumentModelSerializer(data={"name": "Readme.md",
+                                                           "team_id": group_id})
+            doc_serializer.is_valid()
+            doc_serializer.save()
+
+            # 新建文件的聊天室号码
+            doc = Document.objects.get(id=doc_serializer.data.get('id'))
+            doc.encryption = des_encrypt(str(doc.id) + 'document', "document")
+            doc.save()
+
+            # 更改json文件
+            group = Groups.objects.get(id=group_id)
+            default_file_system["children"][1]["tiptap"] = str(doc.encryption)
+            group.file_system = dumps(default_file_system, ensure_ascii=False)
+            group.save()
+
             return Response({'code': 1001, 'msg': '注册成功', 'data': serializer.data})
         except Exception as e:
             print(e)
