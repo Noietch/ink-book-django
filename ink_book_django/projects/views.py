@@ -641,11 +641,12 @@ class ImageUpload(APIView):
     def post(self, request):
         try:
             img = request.data.get('img')
-            prototype_id = request.data.get('prototype_id')
             full_name = str(time.time()) + ".jpg"
             path = os.path.join(img_path, full_name)
             base64_image(img, path)
             data = os.path.join(img_url, full_name)
+
+            prototype_id = request.data.get('prototype_id')
             prototype = Prototype.objects.get(id=prototype_id)
             prototype.img_path = data
             prototype.save()
