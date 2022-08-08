@@ -164,7 +164,7 @@ AUTH_USER_MODEL = "users.Users"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    # 'DEFAULT_AUTHENTICATION_CLASSES': [
-    #     'users.extensions.jwt_auth.JwtAuthentication',
-    # ]
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'users.extensions.jwt_auth.JwtAuthentication',
+    ]
 }
