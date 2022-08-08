@@ -284,4 +284,4 @@ class DocumentCreator(APIView):
         doc.encryption = des_encrypt(str(doc.id) + 'document', "document")
         doc.save()
 
-        return  Response({"code": 1001, "msg": "导出成功", "data": DocumentModelSerializer(doc)})
+        return  Response({"code": 1001, "msg": "导出成功", "data": DocumentModelSerializer(doc).data})
