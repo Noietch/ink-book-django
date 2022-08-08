@@ -240,7 +240,7 @@ class ProjectListAPIView(ListAPIView):
     def post(self, request):
         serializer = ProjectModelSerializer(data=request.data)
         if not self.validate(serializer):
-            return Response({'code': 1001, 'msg': '项目已存在', 'data': ''})
+            return Response({'code': 1002, 'msg': '项目已存在', 'data': ''})
 
         if serializer.is_valid():
             serializer.save()
