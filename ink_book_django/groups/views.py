@@ -5,6 +5,9 @@ from users.serializers import UserSerializer
 from utils.secret import *
 from users.models import *
 from django.db.models import Q
+from utils.config import default_file_system
+from projects.models import Document
+from projects.serializers import DocumentModelSerializer
 
 
 class GroupList(APIView):
@@ -14,24 +17,49 @@ class GroupList(APIView):
         return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
 
     def post(self, request):
+        # 序列化团队信息
         serializer = GroupsSerializer(data=request.data)
+
+        # 查询用户
         try:
-            user = Users.objects.get(pk = request.data.get("creator"))
+            user = Users.objects.get(pk=request.data.get("creator"))
         except:
             return Response({'code': 1003, 'msg': '用户不存在', 'data': ''})
 
-        group = Groups.objects.filter(name__exact = request.data.get("name"))
+        # 查询群组名
+        group = Groups.objects.filter(name__exact=request.data.get("name"))
         if group.exists():
             return Response({'code': 1004, 'msg': '群组名已存在', 'data': ''})
 
         try:
-            if serializer.is_valid():
+            # 验证数据的合法性
+            if not serializer.is_valid():
                 serializer.save()
-                cur_group = Groups.objects.filter(name__exact = request.data.get("name"))
-                user.cur_group = cur_group[0].id
-                user.save()
-                return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
-            return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
+                return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
+
+            # 更改用户的目前的群组
+            cur_group = Groups.objects.filter(name__exact=request.data.get("name"))
+            user.cur_group = cur_group[0].id
+            user.save()
+
+            # 新建一个和团队绑定的文件
+            doc_serializer = DocumentModelSerializer({"name": "Readme.md",
+                                     "team_id": serializer.data.get('id')})
+            doc_serializer.save()
+
+            # 新建文件的聊天室号码
+            doc = Document.objects.get(id=doc_serializer.data.get('id'))
+            doc.encryption = des_encrypt(str(doc.id) + 'document', "document")
+            doc.save()
+
+            # 更改json文件
+            group = Groups.objects.get(id=serializer.data.get('id'))
+            default_file_system["children"][1]["tiptap"] = doc.encryption
+            group.file_system = default_file_system
+            group.save()
+
+            return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
+
         except Exception as e:
             print(e)
             return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
@@ -70,7 +98,7 @@ class GroupDetail(APIView):
 
 
 class GroupsRelationsDetail(APIView):
-    def patch(self,request):
+    def patch(self, request):
         user_id = request.data.get('user_id')
         group_id = request.data.get('group_id')
         status = request.data.get('status')
@@ -88,14 +116,14 @@ class GroupsRelationsDetail(APIView):
         except:
             return Response({'code': 1002, 'msg': '更新失败', 'data': ''})
 
-    def delete(self,request):
+    def delete(self, request):
         user_id = request.data.get('user_id')
         group_id = request.data.get('group_id')
         try:
             relation = GroupsRelations.objects.get(Q(user_id__exact=user_id) & Q(group_id__exact=group_id))
             relation.delete()
             try:
-                user = Users.objects.get(pk = user_id)
+                user = Users.objects.get(pk=user_id)
                 if user.cur_group == group_id:
                     if GroupsRelations.objects.filter(user_id__exact=user_id).exists():
                         relation = GroupsRelations.objects.filter(user_id__exact=user_id)[0]
@@ -131,6 +159,7 @@ class GroupsRelationsList(APIView):
 
 class Encryption(APIView):
     authentication_classes = []
+
     def post(self, request):
         data = request.data.get('data')
         return Response({'code': 1001, 'msg': '加密成功', 'data': des_encrypt(data)})
@@ -138,6 +167,7 @@ class Encryption(APIView):
 
 class Decrypt(APIView):
     authentication_classes = []
+
     def post(self, request):
         data = request.data.get('data')
         try:
@@ -156,3 +186,24 @@ class MemberList(APIView):
             temp["status"] = relation.status
             res.append(temp)
         return Response({'code': 1001, 'msg': '查询成功', 'data': res})
+
+
+class FileSystemDetail(APIView):
+    def get(self, request, pk):
+        try:
+            group = Groups.objects.get(pk=pk)
+            return Response({'code': 1001, 'msg': '查询成功', 'data': group.file_system})
+        except Exception as e:
+            print(e)
+            return Response({'code': 1002, 'msg': '团队不存在', 'data': ''})
+
+    def post(self, request, pk):
+        try:
+            group = Groups.objects.get(pk=pk)
+            tree = request.data.get('tree')
+            group.file_system = tree
+            group.save()
+            return Response({'code': 1001, 'msg': '保存成功', 'data': tree})
+        except Exception as e:
+            print(e)
+            return Response({'code': 1002, 'msg': '团队不存在', 'data': ''})
