@@ -357,13 +357,7 @@ class ProjectStarListAPIView(APIView):
             else:
                 return Response({'code': 1003, 'msg': '收藏失败', 'data': serializer.data})
 
-
-class ProjectStarDetailAPIView(APIView):
-    def get(self, request, pk):
-        serializer = ProjectModelSerializer(StarProject.objects.filter(user_id=pk), many=True)
-        return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
-
-    def delete(self, request, pk):
+    def delete(self, request):
         user_id = request.data.get('user_id')
         project_id = request.data.get('project_id')
         if not StarProject.objects.filter(Q(user_id__exact=user_id) & Q(project_id__exact=project_id)).exists():
@@ -372,6 +366,12 @@ class ProjectStarDetailAPIView(APIView):
             star = StarProject.objects.get(Q(user_id__exact=user_id) & Q(project_id__exact=project_id))
             star.delete()
             return Response({'code': 1001, 'msg': '删除成功', 'data': None})
+
+
+class ProjectStarDetailAPIView(APIView):
+    def get(self, request, pk):
+        serializer = ProjectModelSerializer(StarProject.objects.filter(user_id=pk), many=True)
+        return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
 
 
 class PrototypeListAPIView(SubListAPIView):
