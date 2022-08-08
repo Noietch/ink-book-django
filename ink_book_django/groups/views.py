@@ -1,15 +1,21 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import GroupsSerializer,GroupsRelationsSerializer
-from .models import Groups,GroupsRelations
+from .serializers import GroupsSerializer, GroupsRelationsSerializer
+from .models import Groups, GroupsRelations
 from users.serializers import UserSerializer
 from utils.secret import *
 from users.models import *
 from django.db.models import Q
 from utils.config import default_file_system
-from projects.models import Document
+from utils.websocket_utils import send_to_ws
+
+from projects.models import Document, Project
 from projects.serializers import DocumentModelSerializer
-from json import dumps,loads
+from json import dumps, loads
+
+import time
+import asyncio
+
 
 class GroupList(APIView):
     def get(self, request):
@@ -32,39 +38,38 @@ class GroupList(APIView):
         if group.exists():
             return Response({'code': 1004, 'msg': '群组名已存在', 'data': ''})
 
-        # try:
-        # 验证数据的合法性
-        if serializer.is_valid():
-            # 更改用户的目前的群组
-            serializer.save()
-            cur_group = Groups.objects.filter(name__exact=request.data.get("name"))
-            user.cur_group = cur_group[0].id
-            user.save()
+        try:
+            # 验证数据的合法性
+            if serializer.is_valid():
+                # 更改用户的目前的群组
+                serializer.save()
+                cur_group = Groups.objects.filter(name__exact=request.data.get("name"))
+                user.cur_group = cur_group[0].id
+                user.save()
 
-            # 新建一个和团队绑定的文件
-            doc_serializer = DocumentModelSerializer(data={"name": "Readme.md",
-                                        "team_id": serializer.data.get('id')})
-            doc_serializer.is_valid()                        
-            doc_serializer.save()
+                # 新建一个和团队绑定的文件
+                doc_serializer = DocumentModelSerializer(data={"name": "Readme.md",
+                                                               "team_id": serializer.data.get('id')})
+                doc_serializer.is_valid()
+                doc_serializer.save()
 
-            # 新建文件的聊天室号码
-            doc = Document.objects.get(id=doc_serializer.data.get('id'))
-            doc.encryption = des_encrypt(str(doc.id) + 'document', "document")
-            doc.save()
+                # 新建文件的聊天室号码
+                doc = Document.objects.get(id=doc_serializer.data.get('id'))
+                doc.encryption = des_encrypt(str(doc.id) + 'document', "document")
+                doc.save()
 
-            # 更改json文件
-            group = Groups.objects.get(id=serializer.data.get('id'))
-            default_file_system["children"][1]["tiptap"] = str(doc.encryption)
-            group.file_system = dumps(default_file_system, ensure_ascii=False)
-            group.save()
+                # 更改json文件
+                group = Groups.objects.get(id=serializer.data.get('id'))
+                default_file_system["children"][1]["tiptap"] = str(doc.encryption)
+                group.file_system = dumps(default_file_system, ensure_ascii=False)
+                group.save()
 
-            return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
-        else:    
+                return Response({'code': 1001, 'msg': '新建成功', 'data': serializer.data})
+            else:
+                return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
+        except Exception as e:
+            print(e)
             return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
-
-        # except Exception as e:
-        #     print(e)
-        #     return Response({'code': 1002, 'msg': '新建失败', 'data': serializer.data})
 
 
 class UserGroup(APIView):
@@ -209,3 +214,49 @@ class FileSystemDetail(APIView):
         except Exception as e:
             print(e)
             return Response({'code': 1002, 'msg': '团队不存在', 'data': ''})
+
+
+class GroupTreeFile(APIView):
+    def post(self, request):
+        try:
+            group_id = request.data.get('group_id')
+            project_name = request.data.get('project_name')
+            file_name = request.data.get('file_name')
+
+            project = Project.objects.get(Q(team_id__exact=group_id)&Q(name__exact=project_name))
+
+            # 新建一个和团队绑定的文件
+            doc_serializer = DocumentModelSerializer(data={"name": file_name,
+                                                           "project_id": project.id,
+                                                           "team_id": group_id})
+            doc_serializer.is_valid()
+            doc_serializer.save()
+
+            # 新建文件的聊天室号码
+            doc = Document.objects.get(id=doc_serializer.data.get('id'))
+            doc.encryption = des_encrypt(str(doc.id) + 'document', "document")
+            doc.save()
+
+            # 更改json文件
+            group = Groups.objects.get(id=group_id)
+            file_system = loads(group.file_system)
+            dir_list = file_system["children"][0]["children"][0]["children"]
+            for dir in dir_list:
+                if dir["name"] == "项目文档区":
+                    for project in dir["children"]:
+                        if project["name"] == project_name:
+                            new_file = {
+                                "name": file_name,
+                                "id": int(time.time()),
+                                "dragDisabled": True,
+                                "editNodeDisabled": True,
+                                "delNodeDisabled": True,
+                                "isLeaf": True
+                            }
+                            project["children"].append(new_file)
+            group.file_system = dumps(file_system, ensure_ascii=False)
+            asyncio.run(send_to_ws(group_id, file_system))
+            return Response({"code":1001,"msg":"新建成功","data":""})
+        except Exception as e:
+            print(e)
+            return Response({"code": 1002, "msg": "新建失败", "data": ""})

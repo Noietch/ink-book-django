@@ -566,15 +566,17 @@ class DocumentListAPIView(SubListAPIView):
                 dir_list = file_system["children"][0]["children"][0]["children"]
                 for dir in dir_list:
                     if dir["name"] == "项目文档区":
-                        new_file = {
-                            "id": int(time.time()),
-                            "isLeaf": True,
-                            "tiptap": serializer.data.get('encryption'),
-                            "name": "团队介绍.md",
-                            "pid": int(time.time())
-                        }
-                        target = dir["children"][0]["children"]
-                        target.append(new_file)
+                        for project in dir["children"]:
+                            if project["name"] == project_name:
+                                new_file = {
+                                    "name": obj.name,
+                                    "id": int(time.time()),
+                                    "dragDisabled": True,
+                                    "editNodeDisabled": True,
+                                    "delNodeDisabled": True,
+                                    "isLeaf": True
+                                }
+                                project["children"].append(new_file)
                 group.file_system = json.dumps(file_system, ensure_ascii=False)
                 asyncio.run(send_to_ws(serializer.data.get('team_id'),file_system))
 
