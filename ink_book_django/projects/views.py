@@ -616,8 +616,8 @@ class DocumentListAPIView(SubListAPIView):
                                     "file_id": obj.id,
                                     "encryption": str(obj.encryption),
                                     "dragDisabled": True,
-                                    "editNodeDisabled": True,
-                                    "delNodeDisabled": True,
+                                    "editNodeDisabled": False,
+                                    "delNodeDisabled": False,
                                     "isLeaf": True
                                 }
                                 project_ele["children"].append(new_file)
