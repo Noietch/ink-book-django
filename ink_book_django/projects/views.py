@@ -331,6 +331,8 @@ class ProjectCopyAPIView(APIView):
         old_serializer = serializer(obj)
         data = old_serializer.data
         data['project_id'] = fk
+        if isinstance(obj, Document):
+            data['cow'] = 1
         new_serializer = serializer(data=data)
 
         if new_serializer.is_valid():
@@ -436,8 +438,18 @@ class PrototypeListAPIView(SubListAPIView):
                 res = {'code': 1003, 'msg': '命名重复', 'data': serializer.data}
             else:
                 serializer.save()
+                # 加密
                 obj = Prototype.objects.get(id=serializer.data['id'])
                 obj.encryption = str(des_encrypt(str(obj.id)))[2:-1]
+                # 设置模板内容
+                template = request.data.get('template')
+                if template is not None:
+                    try:
+                        file_path = os.path.join(template_path, prototype_template, template + ".json")
+                        with open(file_path) as file:
+                            obj.components = file.read()
+                    except Exception as e:
+                        print(e)
                 obj.save()
                 serializer = PrototypeModelSerializer(obj)
                 res = {'code': 1001, 'msg': '添加成功', 'data': serializer.data}
@@ -594,8 +606,13 @@ class DocumentListAPIView(SubListAPIView):
                 # 设置文档模板
                 template = request.data.get('template')
                 if template is not None:
-                    file = os.path.join(template_path, template + ".html")
-                    
+                    try:
+                        file_path = os.path.join(template_path, template + ".md")
+                        with open(file_path) as file:
+                            obj.content = file.read()
+                            obj.cow = 1
+                    except Exception as e:
+                        print(e)
                 obj.save()
                 serializer = DocumentModelSerializer(instance=obj)
 
