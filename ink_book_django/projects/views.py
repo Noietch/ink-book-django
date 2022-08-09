@@ -627,9 +627,10 @@ class DocumentListAPIView(SubListAPIView):
 
                 # 设置文档模板
                 template = request.data.get('template')
-                if template is not None:
+                if template is not None and template > 0:
                     try:
-                        file_path = os.path.join(template_path, template + ".md")
+                        template = document_template_choices[template]
+                        file_path = os.path.join(template_path, template + ".txt")
                         with open(file_path) as file:
                             obj.content = file.read()
                             obj.cow = 1
