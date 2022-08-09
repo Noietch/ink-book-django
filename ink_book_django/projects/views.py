@@ -303,6 +303,25 @@ class ProjectDetailAPIView(DetailAPIView):
         }
         return Response(res)
 
+    def delete(self, request, pk):
+        obj = self.get_object(pk)
+        if obj is None:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
+
+        obj.delete()
+        for star in StarProject.objects.filter(project_id=pk):
+            star.delete()
+        res = {
+            'code': 1001,
+            'msg': '删除成功',
+            'data': None
+        }
+        return Response(res)
+
 
 class ProjectCopyAPIView(APIView):
     def validate(self, serializer):
@@ -411,8 +430,11 @@ class ProjectStarPostAPIView(APIView):
         user_id = request.data.get('user_id')
         team_id = int(request.data.get('group_id'))
         data = []
-        for star in StarProject.objects.filter(user_id=user_id):
-            obj = Project.objects.get(id=star.project_id)
+        for star in StarProject.objects.filter(Q(user_id=user_id) & Q(is_deleted=False)):
+            try:
+                obj = Project.objects.get(id=star.project_id)
+            except Project.DoesNotExist:
+                continue
             if obj.team_id == team_id:
                 serializer = ProjectModelSerializer(obj)
                 data.append(serializer.data)
@@ -662,6 +684,22 @@ class DocumentListAPIView(SubListAPIView):
 class DocumentDetailAPIView(SubDetailAPIView):
     model = Document
     serializer = DocumentModelSerializer
+
+    # project_id and team_id
+    def validate(self, obj, serializer):
+        try:
+            project_id = serializer.validated_data['project_id']
+        except:
+            project_id = obj.project_id
+        try:
+            team_id = serializer.validated_data['team_id']
+        except:
+            team_id = obj.team_id
+        try:
+            name = serializer.validated_data['name']
+        except:
+            return True
+        return not self.model.objects.filter(Q(team_id=team_id) & Q(project_id=project_id) & Q(name=name)).exists()
 
 
 class DocumentCenterAPIView(APIView):

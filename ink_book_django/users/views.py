@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import UserSerializer
 from .models import Users
+from random import randint
 
 from utils.mailsender import MailSender
 from utils.random_generator import get_verification_code
@@ -41,6 +42,7 @@ class UserList(APIView):
 
             # 创建新用户
             new_user = Users.objects.create_user(username=email, email=email, password=password)
+            new_user.user_name = '小墨' + str(randint(1, 10000))
             new_user.save()
 
             # 给用户创建属于自己的团队
