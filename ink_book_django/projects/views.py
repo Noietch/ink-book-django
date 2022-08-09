@@ -430,9 +430,9 @@ class ProjectStarPostAPIView(APIView):
         user_id = request.data.get('user_id')
         team_id = int(request.data.get('group_id'))
         data = []
-        for star in StarProject.objects.filter(Q(user_id=user_id) & Q(is_deleted=False)):
+        for star in StarProject.objects.filter(user_id=user_id):
             try:
-                obj = Project.objects.get(id=star.project_id)
+                obj = Project.objects.get(Q(id=star.project_id) & Q(is_deleted=False))
             except Project.DoesNotExist:
                 continue
             if obj.team_id == team_id:
