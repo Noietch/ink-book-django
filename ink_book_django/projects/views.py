@@ -590,6 +590,12 @@ class DocumentListAPIView(SubListAPIView):
                 # 对于话题信息进行加密
                 obj = Document.objects.get(id=serializer.data['id'])
                 obj.encryption = des_encrypt(str(obj.id) + 'document', "document")
+
+                # 设置文档模板
+                template = request.data.get('template')
+                if template is not None:
+                    file = os.path.join(template_path, template + ".html")
+                    
                 obj.save()
                 serializer = DocumentModelSerializer(instance=obj)
 
