@@ -130,16 +130,9 @@ class GroupsRelationsDetail(APIView):
         try:
             relation = GroupsRelations.objects.get(Q(user_id__exact=user_id) & Q(group_id__exact=group_id))
             relation.delete()
-            try:
-                user = Users.objects.get(pk=user_id)
-                if user.cur_group == group_id:
-                    if GroupsRelations.objects.filter(user_id__exact=user_id).exists():
-                        relation = GroupsRelations.objects.filter(user_id__exact=user_id)[0]
-                        user.cur_group = relation.group_id
-                    else:
-                        user.cur_group = 0
-            except:
-                pass
+            user = Users.objects.get(pk=user_id)
+            user.cur_group = user.personal_group
+            user.save()
             return Response({'code': 1001, 'msg': '删除成功', 'data': ''})
         except:
             return Response({'code': 1002, 'msg': '删除失败', 'data': ''})
@@ -202,6 +195,7 @@ class FileSystemDetail(APIView):
             pk = request.data.get('group_id')
             group = Groups.objects.get(pk=pk)
             tree = request.data.get('tree')
+            
             group.file_system = dumps(tree)
             group.save()
 
