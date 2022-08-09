@@ -60,7 +60,8 @@ class GroupList(APIView):
 
                 # 更改json文件
                 group = Groups.objects.get(id=serializer.data.get('id'))
-                default_file_system["children"][1]["tiptap"] = str(doc.encryption)
+                default_file_system["children"][1]["file_id"] = doc.id
+                default_file_system["children"][1]["encryption"] = str(doc.encryption)
                 group.file_system = dumps(default_file_system, ensure_ascii=False)
                 group.save()
 
@@ -129,16 +130,9 @@ class GroupsRelationsDetail(APIView):
         try:
             relation = GroupsRelations.objects.get(Q(user_id__exact=user_id) & Q(group_id__exact=group_id))
             relation.delete()
-            try:
-                user = Users.objects.get(pk=user_id)
-                if user.cur_group == group_id:
-                    if GroupsRelations.objects.filter(user_id__exact=user_id).exists():
-                        relation = GroupsRelations.objects.filter(user_id__exact=user_id)[0]
-                        user.cur_group = relation.group_id
-                    else:
-                        user.cur_group = 0
-            except:
-                pass
+            user = Users.objects.get(pk=user_id)
+            user.cur_group = user.personal_group
+            user.save()
             return Response({'code': 1001, 'msg': '删除成功', 'data': ''})
         except:
             return Response({'code': 1002, 'msg': '删除失败', 'data': ''})
@@ -196,12 +190,16 @@ class MemberList(APIView):
 
 
 class FileSystemDetail(APIView):
-    def post(self, request, pk):
+    def post(self, request):
         try:
+            pk = request.data.get('group_id')
             group = Groups.objects.get(pk=pk)
             tree = request.data.get('tree')
-            group.file_system = tree
+            
+            group.file_system = dumps(tree)
             group.save()
+
+            asyncio.run(send_to_ws(pk, tree))
             return Response({'code': 1001, 'msg': '保存成功', 'data': tree})
         except Exception as e:
             print(e)
@@ -225,13 +223,14 @@ class GroupTreeFile(APIView):
             project_name = request.data.get('project_name')
             file_name = request.data.get('file_name')
 
+
             project = Project.objects.get(Q(team_id__exact=group_id) & Q(name__exact=project_name))
 
 
             # 新建一个和团队绑定的文件
             doc_serializer = DocumentModelSerializer(data={"name": file_name,
-                                                           "project_id": project.id,
-                                                           "team_id": group_id})
+                                                            "project_id": project.id,
+                                                            "team_id": group_id})
             doc_serializer.is_valid()
             doc_serializer.save()
 
@@ -251,6 +250,8 @@ class GroupTreeFile(APIView):
                             new_file = {
                                 "name": file_name,
                                 "id": int(time.time()),
+                                "file_id": doc.id,
+                                "encryption":str(doc.encryption),
                                 "dragDisabled": True,
                                 "editNodeDisabled": True,
                                 "delNodeDisabled": True,
@@ -264,3 +265,22 @@ class GroupTreeFile(APIView):
         except Exception as e:
             print(e)
             return Response({"code": 1002, "msg": "新建失败", "data": ""})
+
+
+class DocumentCreator(APIView):
+    def post(self,request):
+        group_id = request.data.get('group_id')
+        file_name = request.data.get('file_name')
+
+        # 新建一个和团队绑定的文件
+        doc_serializer = DocumentModelSerializer(data={"name": file_name,
+                                                       "team_id": group_id})
+        doc_serializer.is_valid()
+        doc_serializer.save()
+
+        # 新建文件的聊天室号码
+        doc = Document.objects.get(id=doc_serializer.data.get('id'))
+        doc.encryption = des_encrypt(str(doc.id) + 'document', "document")
+        doc.save()
+
+        return  Response({"code": 1001, "msg": "导出成功", "data": DocumentModelSerializer(doc).data})

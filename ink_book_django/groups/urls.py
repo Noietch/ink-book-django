@@ -10,7 +10,8 @@ urlpatterns = [
     path(r'decrypt/', Decrypt.as_view()),
     path(r'member-list/', MemberList.as_view()),
     path(r'groups-relations-detail/', GroupsRelationsDetail.as_view()),
-    path(r'file-system-detail/<int:pk>/', FileSystemDetail.as_view()),
+    path(r'file-system-detail/', FileSystemDetail.as_view()),
     path(r'file-system-detail-tree/', FileSystemTree.as_view()),
     path(r'GroupTreeFile/',GroupTreeFile.as_view()),
+    path(r'DocumentCreator/',DocumentCreator.as_view()),
 ]

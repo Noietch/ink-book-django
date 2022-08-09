@@ -12,6 +12,7 @@ from utils.config import *
 from utils.image_utils import base64_image
 from utils.websocket_utils import send_to_ws
 from json import dumps, loads
+from pdf2docx import Converter
 
 import pdfkit
 import time
@@ -85,9 +86,8 @@ class DetailAPIView(APIView):
         try:
             name = serializer.validated_data['name']
         except:
-            name = obj.name
-        return not (self.model.objects.filter(team_id=team_id, name=name).exists()
-                    and not self.model.objects.get(team_id=team_id, name=name) == obj)
+            return True
+        return not self.model.objects.filter(team_id=team_id, name=name).exists()
 
     def get_object(self, pk):
         try:
@@ -216,9 +216,8 @@ class SubDetailAPIView(DetailAPIView):
         try:
             name = serializer.validated_data['name']
         except:
-            name = obj.name
-        return not (self.model.objects.filter(project_id=project_id, name=name).exists()
-                    and not self.model.objects.get(project_id=project_id, name=name) == obj)
+            return True
+        return not self.model.objects.filter(project_id=project_id, name=name).exists()
 
     def post(self, request, pk):
         objects1 = self.model.objects.filter(project_id=pk, is_deleted=False)
@@ -405,10 +404,17 @@ class ProjectStarListAPIView(APIView):
             return Response({'code': 1001, 'msg': '删除成功', 'data': None})
 
 
-class ProjectStarDetailAPIView(APIView):
-    def get(self, request, pk):
-        serializer = ProjectModelSerializer(StarProject.objects.filter(user_id=pk), many=True)
-        return Response({'code': 1001, 'msg': '查询成功', 'data': serializer.data})
+class ProjectStarPostAPIView(APIView):
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        team_id = int(request.data.get('group_id'))
+        data = []
+        for star in StarProject.objects.filter(user_id=user_id):
+            obj = Project.objects.get(id=star.project_id)
+            if obj.team_id == team_id:
+                serializer = ProjectModelSerializer(obj)
+                data.append(serializer.data)
+        return Response({'code': 1001, 'msg': '查询成功', 'data': data})
 
 
 class PrototypeListAPIView(SubListAPIView):
@@ -494,21 +500,14 @@ class PrototypeDetailAPIView(SubDetailAPIView):
             }
         return Response(res)
 
+
+class PrototypeByProjectAPIView(APIView):
+    authentication_classes = []
     def post(self, request, pk):
-        objects1 = self.model.objects.filter(project_id=pk, is_deleted=False)
-        serializer1 = self.serializer(objects1, many=True)
-        # for data in serializer1.data:
-        #     try:
-        #         data['components'] = loads(loads(data['components']))
-        #     except:
-        #         pass
-        objects2 = self.model.objects.filter(project_id=pk, is_deleted=True)
-        serializer2 = self.serializer(objects2, many=True)
-        # for data in serializer2.data:
-        #     try:
-        #         data['components'] = loads(loads(data['components']))
-        #     except:
-        #         pass
+        objects1 = Prototype.objects.filter(project_id=pk, is_deleted=False)
+        serializer1 = PrototypeModelSerializer(objects1, many=True)
+        objects2 = Prototype.objects.filter(project_id=pk, is_deleted=True)
+        serializer2 = PrototypeModelSerializer(objects2, many=True)
         res = {
             'code': 1001,
             'msg': '查询成功',
@@ -591,6 +590,12 @@ class DocumentListAPIView(SubListAPIView):
                 # 对于话题信息进行加密
                 obj = Document.objects.get(id=serializer.data['id'])
                 obj.encryption = des_encrypt(str(obj.id) + 'document', "document")
+
+                # 设置文档模板
+                template = request.data.get('template')
+                if template is not None:
+                    file = os.path.join(template_path, template + ".html")
+                    
                 obj.save()
                 serializer = DocumentModelSerializer(instance=obj)
 
@@ -608,6 +613,8 @@ class DocumentListAPIView(SubListAPIView):
                                 new_file = {
                                     "name": obj.name,
                                     "id": int(time.time()),
+                                    "file_id": obj.id,
+                                    "encryption": str(obj.encryption),
                                     "dragDisabled": True,
                                     "editNodeDisabled": True,
                                     "delNodeDisabled": True,
@@ -669,6 +676,30 @@ class PDFConvertor(APIView):
             full_name = filename + str(time.time()) + '.pdf'
             path = os.path.join(img_path, full_name)
             pdfkit.from_string(content, path)
+            return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
+        except Exception as e:
+            print("PDFConvertor:", e)
+            return Response({"code": 1002, "msg": "导出失败", "data": ''})
+
+
+class MarkdownConvertor(APIView):
+    pass
+
+
+class WordConvertor(APIView):
+    def post(self, request):
+        try:
+            filename = request.data.get('name')
+            content = request.data.get('content')
+            full_name = filename + str(time.time()) + '.pdf'
+            path = os.path.join(img_path, full_name)
+            pdfkit.from_string(content, path)
+            cv = Converter(path)
+
+            full_name = filename + str(time.time()) + '.docx'
+            path = os.path.join(img_path, full_name)
+            cv.convert(path)
+            cv.close()
             return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
         except Exception as e:
             print("PDFConvertor:", e)

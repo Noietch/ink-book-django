@@ -53,8 +53,9 @@ class UserList(APIView):
             group_relations = GroupsRelations.objects.create(user_id=user.id, group_id=group_id, status="管理员")
             group_relations.save()
 
-            # 设置用户目前的团队就是自己的团队
+            # 设置用户目前的团队和个人团队号就是自己的团队
             user.cur_group = group_id
+            user.personal_group = group_id
             user.save()
 
             # 返回用户的信息
@@ -73,7 +74,8 @@ class UserList(APIView):
 
             # 更改json文件
             group = Groups.objects.get(id=group_id)
-            default_file_system["children"][1]["tiptap"] = str(doc.encryption)
+            default_file_system["children"][1]["file_id"] = doc.id
+            default_file_system["children"][1]["encryption"] = str(doc.encryption)
             group.file_system = dumps(default_file_system, ensure_ascii=False)
             group.save()
 
