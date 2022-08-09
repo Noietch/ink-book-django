@@ -60,7 +60,8 @@ class GroupList(APIView):
 
                 # 更改json文件
                 group = Groups.objects.get(id=serializer.data.get('id'))
-                default_file_system["children"][1]["tiptap"] = str(doc.encryption)
+                default_file_system["children"][1]["file_id"] = doc.id
+                default_file_system["children"][1]["encryption"] = str(doc.encryption)
                 group.file_system = dumps(default_file_system, ensure_ascii=False)
                 group.save()
 
@@ -228,13 +229,14 @@ class GroupTreeFile(APIView):
             project_name = request.data.get('project_name')
             file_name = request.data.get('file_name')
 
+
             project = Project.objects.get(Q(team_id__exact=group_id) & Q(name__exact=project_name))
 
 
             # 新建一个和团队绑定的文件
             doc_serializer = DocumentModelSerializer(data={"name": file_name,
-                                                           "project_id": project.id,
-                                                           "team_id": group_id})
+                                                            "project_id": project.id,
+                                                            "team_id": group_id})
             doc_serializer.is_valid()
             doc_serializer.save()
 
@@ -255,7 +257,7 @@ class GroupTreeFile(APIView):
                                 "name": file_name,
                                 "id": int(time.time()),
                                 "file_id": doc.id,
-                                "encryption":doc.encryption,
+                                "encryption":str(doc.encryption),
                                 "dragDisabled": True,
                                 "editNodeDisabled": True,
                                 "delNodeDisabled": True,

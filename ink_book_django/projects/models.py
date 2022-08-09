@@ -49,6 +49,7 @@ class UML(models.Model):
     name = models.CharField(max_length=200)
     route = models.CharField(max_length=255, null=True)
     project_id = models.IntegerField(default=0)
+
     is_deleted = models.BooleanField(default=False)
     avatar = models.TextField(default='https://dn-st.teambition.net/teambition/images/logo5.a07a0ef0.jpg')
     width = models.IntegerField(default=1440)
@@ -74,6 +75,7 @@ class Document(models.Model):
     width = models.IntegerField(default=1440)
     height = models.IntegerField(default=1024)
     label = models.CharField(max_length=100, default=LABELS[0], null=True)
+    content = models.TextField(null=True)
 
     def get_info(self):
         return {"name": self.name, "path": f"/document?id={self.encryption}", "label": self.label}

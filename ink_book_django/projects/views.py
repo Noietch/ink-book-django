@@ -85,7 +85,7 @@ class DetailAPIView(APIView):
         try:
             name = serializer.validated_data['name']
         except:
-            name = obj.name
+            return True
         return not (self.model.objects.filter(team_id=team_id, name=name).exists()
                     and not self.model.objects.get(team_id=team_id, name=name) == obj)
 
@@ -216,7 +216,7 @@ class SubDetailAPIView(DetailAPIView):
         try:
             name = serializer.validated_data['name']
         except:
-            name = obj.name
+            return True
         return not (self.model.objects.filter(project_id=project_id, name=name).exists()
                     and not self.model.objects.get(project_id=project_id, name=name) == obj)
 
@@ -609,7 +609,7 @@ class DocumentListAPIView(SubListAPIView):
                                     "name": obj.name,
                                     "id": int(time.time()),
                                     "file_id": obj.id,
-                                    "encryption": obj.encryption,
+                                    "encryption": str(obj.encryption),
                                     "dragDisabled": True,
                                     "editNodeDisabled": True,
                                     "delNodeDisabled": True,

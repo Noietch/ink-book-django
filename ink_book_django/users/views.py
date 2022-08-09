@@ -73,7 +73,8 @@ class UserList(APIView):
 
             # 更改json文件
             group = Groups.objects.get(id=group_id)
-            default_file_system["children"][1]["tiptap"] = str(doc.encryption)
+            default_file_system["children"][1]["file_id"] = doc.id
+            default_file_system["children"][1]["encryption"] = str(doc.encryption)
             group.file_system = dumps(default_file_system, ensure_ascii=False)
             group.save()
 
