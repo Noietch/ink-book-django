@@ -358,20 +358,29 @@ class ProjectCopyAPIView(APIView):
             # 记录原文档信息
             old_id = data['id']
             old_encryption = data['encryption']
-
             # 修改新文档信息
             data['cow'] = 1
-            new_encryption = str(des_encrypt(str(obj.id) + 'document', "document"))
-            data['encryption'] = new_encryption
-        elif isinstance(obj, Prototype):
-            data['encryption'] = str(des_encrypt(str(obj.id)))[2:-1]
         new_serializer = serializer(data=data)
 
         if new_serializer.is_valid():
             new_serializer.save()
             if isinstance(obj, Document):
-                self.resource[old_id] = new_serializer.data['id']
+                new_id = new_serializer.data['id']
+                new_obj = Document.objects.get(id=new_id)
+                new_encryption = str(des_encrypt(str(new_id) + 'document', "document"))
+                new_serializer.data['encryption'] = new_encryption
+                obj.encryption = new_encryption
+                obj.save()
+                # 保存字典信息
+                self.resource[old_id] = new_id
                 self.resource[old_encryption] = new_encryption
+            elif isinstance(obj, Prototype):
+                new_id = new_serializer.data['id']
+                new_obj = Prototype.objects.get(id=new_id)
+                new_encryption = str(des_encrypt(str(new_id)))[2:-1]
+                new_serializer.data['encryption'] = new_encryption
+                obj.encryption = new_encryption
+                obj.save()
             return True
         else:
             return False
@@ -946,3 +955,4 @@ class ImageUpload(APIView):
         except Exception as e:
             print("ImageUpload:", e)
             return Response({"code": 1002, "msg": "导出失败", "data": ''})
+            
