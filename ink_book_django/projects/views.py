@@ -19,7 +19,7 @@ import pdfkit
 import time
 import os
 import asyncio
-
+import copy
 
 # Create your views here.
 class ListAPIView(APIView):
@@ -405,8 +405,31 @@ class ProjectCopyAPIView(APIView):
                 if not self.sub_copy(obj, Serializers[i], data['id']):
                     return Response(res)
 
-        # 字典
-        self.resource
+        # 找到所属团队
+        old_project = self.get_object(pk)
+        team = Groups.objects.get(pk=old_project.team_id)
+        tree = loads(team.file_system)
+        dir_list = tree["children"]
+
+        new_dir = None
+        # 找到那个节点
+        for dir in dir_list:
+            if dir["name"] == "项目文档区":
+                for project_ele in  dir["children"]:
+                    if project_ele["name"] == old_project.name:
+                        new_dir = copy.deepcopy(project_ele)
+                        break
+
+        # 更新节点
+        for file in new_dir:
+            file["file_id"] = self.resource[file["file_id"]]
+            file["encryption"] = self.resource[file["encryption"]]
+
+        for dir in dir_list:
+            if dir["name"] == "项目文档区":
+                dir["children"].append(new_dir)
+        team.file_system = dumps(tree,ensure_ascii=False)
+        team.save()
 
         res = {
             'code': 1001,
