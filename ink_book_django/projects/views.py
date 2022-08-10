@@ -247,6 +247,7 @@ class ProjectListAPIView(ListAPIView):
             serializer.save()
             group = Groups.objects.get(id=serializer.data.get('team_id'))
             file_system = loads(group.file_system)
+
             dir_list = file_system["children"]
             for dir in dir_list:
                 if dir["name"] == "项目文档区":
@@ -725,56 +726,58 @@ class DocumentCenterAPIView(APIView):
         return Response({'code': 1001, 'msg': '查询成功', 'data': res})
 
 
-class PDFConvertor(APIView):
+class FileConvertor(APIView):
     def post(self, request):
-        try:
-            filename = request.data.get('name')
-            content = request.data.get('content')
-            full_name = filename + str(time.time()) + '.pdf'
-            path = os.path.join(img_path, full_name)
-            pdfkit.from_string(content, path)
-            return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
-        except Exception as e:
-            print("PDFConvertor:", e)
-            return Response({"code": 1002, "msg": "导出失败", "data": ''})
+        filename = request.data.get('name')
+        content = request.data.get('content')
+        form = request.data.get('format')
 
+        if form == "pdf":
+            try:
+                
+                full_name = filename + str(time.time()) + '.pdf'
+                path = os.path.join(img_path, full_name)
+                pdfkit.from_string(content, path)
+                return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
+            except Exception as e:
+                print("PDFConvertor:", e)
+                return Response({"code": 1002, "msg": "导出失败", "data": ''})
+        
+        if form == "md":
+            try:
+                filename = request.data.get('name')
+                content = request.data.get('content')
+                full_name = filename + str(time.time()) + '.md'
+                # 处理内容
+                text = HTML2Text().handle(content)
+                # 写入处理后的内容
+                path = os.path.join(img_path, full_name)
+                with open(path, 'w', encoding='UTF-8') as f:
+                    f.write(text)
+                return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
+            except Exception as e:
+                print("MDConvertor:", e)
+                return Response({"code": 1002, "msg": "导出失败", "data": ''})
+        
+        if form == "docx":
+            try:
+                filename = request.data.get('name')
+                content = request.data.get('content')
+                full_name = filename + str(time.time()) + '.pdf'
+                path = os.path.join(img_path, full_name)
+                pdfkit.from_string(content, path)
+                cv = Converter(path)
 
-class MarkdownConvertor(APIView):
-    def post(self, request):
-        try:
-            filename = request.data.get('name')
-            content = request.data.get('content')
-            full_name = filename + str(time.time()) + '.md'
-            # 处理内容
-            text = HTML2Text().handle(content)
-            # 写入处理后的内容
-            path = os.path.join(img_path, full_name)
-            with open(path, 'w', encoding='UTF-8') as f:
-                f.write(text)
-            return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
-        except Exception as e:
-            print("MDConvertor:", e)
-            return Response({"code": 1002, "msg": "导出失败", "data": ''})
-
-
-class WordConvertor(APIView):
-    def post(self, request):
-        try:
-            filename = request.data.get('name')
-            content = request.data.get('content')
-            full_name = filename + str(time.time()) + '.pdf'
-            path = os.path.join(img_path, full_name)
-            pdfkit.from_string(content, path)
-            cv = Converter(path)
-
-            full_name = filename + str(time.time()) + '.docx'
-            path = os.path.join(img_path, full_name)
-            cv.convert(path)
-            cv.close()
-            return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
-        except Exception as e:
-            print("WordConvertor:", e)
-            return Response({"code": 1002, "msg": "导出失败", "data": ''})
+                full_name = filename + str(time.time()) + '.docx'
+                path = os.path.join(img_path, full_name)
+                cv.convert(path)
+                cv.close()
+                return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
+            except Exception as e:
+                print("WordConvertor:", e)
+                return Response({"code": 1002, "msg": "导出失败", "data": ''})
+        
+        return Response({"code": 1002, "msg": "导出失败", "data": ''})
 
 
 class ImageUpload(APIView):

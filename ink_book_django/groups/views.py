@@ -196,7 +196,7 @@ class FileSystemDetail(APIView):
             group = Groups.objects.get(pk=pk)
             tree = request.data.get('tree')
 
-            group.file_system = dumps(tree)
+            group.file_system = dumps(tree,ensure_ascii=False)
             group.save()
 
             asyncio.run(send_to_ws(pk, tree))
@@ -242,6 +242,7 @@ class GroupTreeFile(APIView):
             # 更改json文件
             group = Groups.objects.get(id=group_id)
             file_system = loads(group.file_system)
+            print(file_system)
             dir_list = file_system["children"]
             for dir in dir_list:
                 if dir["name"] == "项目文档区":
