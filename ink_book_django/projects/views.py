@@ -492,7 +492,7 @@ class ProjectCopyAPIView(APIView):
             team.file_system = dumps(tree,ensure_ascii=False)
             team.save()
 
-            asyncio.run(send_to_ws(old_project.team_id, file_system))
+            asyncio.run(send_to_ws(team.id, team.file_system))
 
             res = {
                 'code': 1001,
