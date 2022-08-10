@@ -314,15 +314,62 @@ class ProjectDetailAPIView(DetailAPIView):
                 'data': None
             })
 
+        # 编辑树
+        team_id = obj.team_id
+        groups = Groups.objects.get(id=team_id)
+        tree = loads(groups.file_system)
+
+        dir_list = tree["children"]
+        for dir in dir_list:
+            if dir["name"] == "项目文档区":
+                to_del = None
+                for project_ele in dir["children"]:
+                    if project_ele["name"] == groups.name:
+                        to_del = project_ele
+                        break
+                dir["children"].remove(to_del)
+        groups.file_system = dumps(tree,ensure_ascii=False)
+        groups.save()
+
         obj.delete()
         for star in StarProject.objects.filter(project_id=pk):
             star.delete()
+
         res = {
             'code': 1001,
             'msg': '删除成功',
             'data': None
         }
         return Response(res)
+
+
+class ProjectRename(APIView):
+    def post(self, request):
+        try:
+            project_id = request.data.get('project_id')
+            new_name = request.data.get('new_name')
+
+            project = Project.objects.get(id=project_id)
+            project.name = new_name
+            project.save()
+
+            groups = Groups.objects.get(id=project.team_id)
+            tree = loads(groups.file_system)
+
+            dir_list = tree["children"]
+            for dir in dir_list:
+                if dir["name"] == "项目文档区":
+                    for project_ele in dir["children"]:
+                        if project_ele["name"] == groups.name:
+                            project_ele["name"] = new_name
+                            break
+            groups.file_system = dumps(tree, ensure_ascii=False)
+            groups.save()
+            return Response({"code": 1001, "msg": "修改成功", "data": ""})
+        except Exception as e:
+            print(e)
+            return Response({"code": 1001, "msg": "修改成功", "data": ""})
+
 
 
 class ProjectCopyAPIView(APIView):
