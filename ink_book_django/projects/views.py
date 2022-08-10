@@ -13,6 +13,7 @@ from utils.image_utils import base64_image
 from utils.websocket_utils import send_to_ws
 from json import dumps, loads
 from pdf2docx import Converter
+from html2text import HTML2Text
 
 import pdfkit
 import time
@@ -739,7 +740,21 @@ class PDFConvertor(APIView):
 
 
 class MarkdownConvertor(APIView):
-    pass
+    def post(self, request):
+        try:
+            filename = request.data.get('name')
+            content = request.data.get('content')
+            full_name = filename + str(time.time()) + '.md'
+            # 处理内容
+            text = HTML2Text().handle(content)
+            # 写入处理后的内容
+            path = os.path.join(img_path, full_name)
+            with open(path, 'w', encoding='UTF-8') as f:
+                f.write(text)
+            return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
+        except Exception as e:
+            print("MDConvertor:", e)
+            return Response({"code": 1002, "msg": "导出失败", "data": ''})
 
 
 class WordConvertor(APIView):
@@ -758,7 +773,7 @@ class WordConvertor(APIView):
             cv.close()
             return Response({"code": 1001, "msg": "导出成功", "data": os.path.join(img_url, full_name)})
         except Exception as e:
-            print("PDFConvertor:", e)
+            print("WordConvertor:", e)
             return Response({"code": 1002, "msg": "导出失败", "data": ''})
 
 
