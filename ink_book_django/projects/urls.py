@@ -20,6 +20,7 @@ urlpatterns = [
     path(r'umls/info/', UMLInfoAPIView.as_view()),
     path(r'documents/', DocumentListAPIView.as_view()),
     path(r'documents/<int:pk>/', DocumentDetailAPIView.as_view()),
+    path(r'documents/info/', DocumentInfoAPIView.as_view()),
     path(r'documents/FileConvertor/', FileConvertor.as_view()),
     path(r'documents/center/<int:pk>/', DocumentCenterAPIView.as_view()),
 ]

@@ -78,6 +78,7 @@ class Document(models.Model):
     label = models.CharField(max_length=100, default=LABELS[0], null=True)
     content = models.TextField(null=True)
     cow = models.IntegerField(default=0)
+    online_users = models.IntegerField(default=0)
 
     def get_info(self):
         return {"name": self.name, "path": f"/document?id={self.encryption}", "label": self.label}

@@ -727,6 +727,25 @@ class DocumentDetailAPIView(SubDetailAPIView):
         return not self.model.objects.filter(Q(team_id=team_id) & Q(project_id=project_id) & Q(name=name)).exists()
 
 
+class DocumentInfoAPIView(APIView):
+    def post(self, request):
+        try:
+            obj = Document.objects.get(id=request.data.get('id'))
+        except Document.DoesNotExist:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
+        serializer = DocumentModelSerializer(obj)
+        res = {
+            'code': 1001,
+            'msg': '查询成功',
+            'data': serializer.data
+        }
+        return Response(res)
+
+
 class DocumentCenterAPIView(APIView):
     def post(self, request, pk):
         res = {"name": "documentMall", "label": "文档中心", "icon": "user", "url": "UserManage/UserManage"}
