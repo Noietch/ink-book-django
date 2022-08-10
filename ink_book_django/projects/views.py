@@ -368,9 +368,8 @@ class ProjectCopyAPIView(APIView):
                 new_id = new_serializer.data['id']
                 new_obj = Document.objects.get(id=new_id)
                 new_encryption = str(des_encrypt(str(new_id) + 'document', "document"))
-                new_serializer.data['encryption'] = new_encryption
-                obj.encryption = new_encryption
-                obj.save()
+                new_obj.encryption = new_encryption
+                new_obj.save()
                 # 保存字典信息
                 self.resource[old_id] = new_id
                 self.resource[old_encryption] = new_encryption
@@ -378,9 +377,8 @@ class ProjectCopyAPIView(APIView):
                 new_id = new_serializer.data['id']
                 new_obj = Prototype.objects.get(id=new_id)
                 new_encryption = str(des_encrypt(str(new_id)))[2:-1]
-                new_serializer.data['encryption'] = new_encryption
-                obj.encryption = new_encryption
-                obj.save()
+                new_obj.encryption = new_encryption
+                new_obj.save()
             return True
         else:
             return False
@@ -394,6 +392,7 @@ class ProjectCopyAPIView(APIView):
 
     def post(self, request):
         try:
+            self.resource = {}
             pk = request.data.get('id')
             obj = self.get_object(pk)
             if obj is None:
