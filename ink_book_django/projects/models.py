@@ -78,7 +78,7 @@ class Document(models.Model):
     label = models.CharField(max_length=100, default=LABELS[0], null=True)
     content = models.TextField(null=True)
     cow = models.IntegerField(default=0)
-    online_users = models.IntegerField(default=0)
+    online_users = models.IntegerField(null=True, default=0)
 
     def get_info(self):
         return {"name": self.name, "path": f"/document?id={self.encryption}", "label": self.label}
@@ -86,24 +86,3 @@ class Document(models.Model):
     class Meta:
         verbose_name = "文档"
         verbose_name_plural = verbose_name
-
-#
-# class Component(models.Model):
-#     acceptRatio = models.BooleanField()
-#     active = models.BooleanField()
-#     axis = models.CharField(default='xy', max_length=10)
-#     children = models.TextField(null=True)
-#     draggable = models.BooleanField()
-#     extra = models.TextField()
-#     grid = models.TextField()
-#     id = models.CharField(max_length=50)
-#     minHeight = models.IntegerField()
-#     minWidth = models.IntegerField()
-#     parent = models.BooleanField()
-#     parentId = models.IntegerField(null=True)
-#     resizable = models.BooleanField()
-#     resizeHandler = models.TextField()
-#     rotatable = models.BooleanField()
-#     transform = models.TextField()
-#     type = models.CharField(max_length=50)
-#     zoom = models.IntegerField()
