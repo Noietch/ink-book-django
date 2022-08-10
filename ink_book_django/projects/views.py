@@ -326,6 +326,8 @@ class ProjectDetailAPIView(DetailAPIView):
 
 
 class ProjectCopyAPIView(APIView):
+    resource = {}
+
     def validate(self, serializer):
         team_id = serializer.validated_data['team_id']
         name = serializer.validated_data['name']
@@ -354,10 +356,19 @@ class ProjectCopyAPIView(APIView):
         data['project_id'] = fk
         if isinstance(obj, Document):
             data['cow'] = 1
+            new_encryption = des_encrypt(str(obj.id) + 'document', "document")
+            data['encryption'] = new_encryption
+            old_id = data['id']
+            old_encryption = data['encryption']
+        if isinstance(obj, Prototype):
+            data['encryption'] = str(des_encrypt(str(obj.id)))[2:-1]
         new_serializer = serializer(data=data)
 
         if new_serializer.is_valid():
             new_serializer.save()
+            if isinstance(obj, Document):
+                self.resource[old_id] = new_serializer.data['id']
+                self.resource[old_encryption] = new_encryption
             return True
         else:
             return False
@@ -393,6 +404,9 @@ class ProjectCopyAPIView(APIView):
             for obj in Models[i].objects.filter(project_id=pk):
                 if not self.sub_copy(obj, Serializers[i], data['id']):
                     return Response(res)
+
+        # 字典
+        self.resource
 
         res = {
             'code': 1001,
@@ -467,7 +481,7 @@ class PrototypeListAPIView(SubListAPIView):
                 obj.encryption = str(des_encrypt(str(obj.id)))[2:-1]
                 # 设置模板内容
                 template = request.data.get('template')
-                if template is not None:
+                if template is not None and template > 0:
                     try:
                         file_path = os.path.join(template_path, prototype_template, template + ".json")
                         with open(file_path) as file:
