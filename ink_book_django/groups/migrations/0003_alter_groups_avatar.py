@@ -10,9 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='groups',
-            name='avatar',
-            field=models.TextField(default='https://dn-st.teambition.net/teambition/images/logo1.a6464e9c.jpg'),
-        ),
+        # migrations.AlterField(
+        #     model_name='groups',
+        #     name='avatar',
+        #     field=models.TextField(default='https://dn-st.teambition.net/teambition/images/logo1.a6464e9c.jpg'),
+        # ),
     ]

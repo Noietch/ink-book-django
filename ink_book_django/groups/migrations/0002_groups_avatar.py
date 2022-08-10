@@ -10,9 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='groups',
-            name='avatar',
-            field=models.TextField(null=True),
-        ),
+        # migrations.AddField(
+        #     model_name='groups',
+        #     name='avatar',
+        #     field=models.TextField(null=True),
+        # ),
     ]

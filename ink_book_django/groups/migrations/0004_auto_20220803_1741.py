@@ -10,14 +10,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='groups',
-            name='avatar',
-            field=models.TextField(null=True),
-        ),
-        migrations.AlterField(
-            model_name='groups',
-            name='name',
-            field=models.CharField(max_length=50),
-        ),
+        # migrations.AlterField(
+        #     model_name='groups',
+        #     name='avatar',
+        #     field=models.TextField(null=True),
+        # ),
+        # migrations.AlterField(
+        #     model_name='groups',
+        #     name='name',
+        #     field=models.CharField(max_length=50),
+        # ),
     ]
