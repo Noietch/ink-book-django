@@ -242,7 +242,6 @@ class GroupTreeFile(APIView):
             # 更改json文件
             group = Groups.objects.get(id=group_id)
             file_system = loads(group.file_system)
-            print(file_system)
             dir_list = file_system["children"]
             for dir in dir_list:
                 if dir["name"] == "项目文档区":
@@ -254,8 +253,8 @@ class GroupTreeFile(APIView):
                                 "file_id": doc.id,
                                 "encryption":str(doc.encryption),
                                 "dragDisabled": True,
-                                "editNodeDisabled": True,
-                                "delNodeDisabled": True,
+                                "editNodeDisabled": False,
+                                "delNodeDisabled": False,
                                 "isLeaf": True
                             }
                             project["children"].append(new_file)

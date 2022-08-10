@@ -23,6 +23,8 @@ urlpatterns = [
     path(r'documents/info/', DocumentInfoAPIView.as_view()),
     path(r'documents/FileConvertor/', FileConvertor.as_view()),
     path(r'documents/center/<int:pk>/', DocumentCenterAPIView.as_view()),
+    path(r'documents/DocumentDir/', DocumentDir.as_view()),
+    path(r'documents/DocumentFile/', DocumentFile.as_view()),
 ]
 
 # router = DefaultRouter()

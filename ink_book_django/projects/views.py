@@ -355,12 +355,15 @@ class ProjectCopyAPIView(APIView):
         data = old_serializer.data
         data['project_id'] = fk
         if isinstance(obj, Document):
-            data['cow'] = 1
-            new_encryption = des_encrypt(str(obj.id) + 'document', "document")
-            data['encryption'] = new_encryption
+            # 记录原文档信息
             old_id = data['id']
             old_encryption = data['encryption']
-        if isinstance(obj, Prototype):
+
+            # 修改新文档信息
+            data['cow'] = 1
+            new_encryption = str(des_encrypt(str(obj.id) + 'document', "document"))
+            data['encryption'] = new_encryption
+        elif isinstance(obj, Prototype):
             data['encryption'] = str(des_encrypt(str(obj.id)))[2:-1]
         new_serializer = serializer(data=data)
 
@@ -381,62 +384,67 @@ class ProjectCopyAPIView(APIView):
         return obj
 
     def post(self, request):
-        pk = request.data.get('id')
-        obj = self.get_object(pk)
-        if obj is None:
-            return Response({
-                'code': 1002,
-                'msg': '对象不存在',
+        try:
+            pk = request.data.get('id')
+            obj = self.get_object(pk)
+            if obj is None:
+                return Response({
+                    'code': 1002,
+                    'msg': '对象不存在',
+                    'data': None
+                })
+            res = {
+                'code': 1003,
+                'msg': '复制失败',
                 'data': None
-            })
-        res = {
-            'code': 1003,
-            'msg': '复制失败',
-            'data': None
-        }
-        data = self.copy(obj, Project, ProjectModelSerializer, self.validate)
-        if data is None:
+            }
+            data = self.copy(obj, Project, ProjectModelSerializer, self.validate)
+            if data is None:
+                return Response(res)
+
+            Models = [Prototype, UML, Document]
+            Serializers = [PrototypeModelSerializer, UMLModelSerializer, DocumentModelSerializer]
+            for i in range(0, 3):
+                for obj in Models[i].objects.filter(project_id=pk):
+                    if not self.sub_copy(obj, Serializers[i], data['id']):
+                        return Response(res)
+
+            # 找到所属团队
+            old_project = self.get_object(pk)
+            team = Groups.objects.get(pk=old_project.team_id)
+            tree = loads(team.file_system)
+            dir_list = tree["children"]
+
+            new_dir = None
+            # 找到那个节点
+            for dir in dir_list:
+                if dir["name"] == "项目文档区":
+                    for project_ele in  dir["children"]:
+                        if project_ele["name"] == old_project.name:
+                            new_dir = copy.deepcopy(project_ele)
+                            break
+
+            new_dir["name"] = data['name']
+            # 更新节点
+            for file in new_dir["children"]:
+                file["file_id"] = self.resource[file["file_id"]]
+                file["encryption"] = self.resource[file["encryption"]]
+
+            for dir in dir_list:
+                if dir["name"] == "项目文档区":
+                    dir["children"].append(new_dir)
+            team.file_system = dumps(tree,ensure_ascii=False)
+            team.save()
+
+            res = {
+                'code': 1001,
+                'msg': '复制成功',
+                'data': data
+            }
             return Response(res)
-
-        Models = [Prototype, UML, Document]
-        Serializers = [PrototypeModelSerializer, UMLModelSerializer, DocumentModelSerializer]
-        for i in range(0, 3):
-            for obj in Models[i].objects.filter(project_id=pk):
-                if not self.sub_copy(obj, Serializers[i], data['id']):
-                    return Response(res)
-
-        # 找到所属团队
-        old_project = self.get_object(pk)
-        team = Groups.objects.get(pk=old_project.team_id)
-        tree = loads(team.file_system)
-        dir_list = tree["children"]
-
-        new_dir = None
-        # 找到那个节点
-        for dir in dir_list:
-            if dir["name"] == "项目文档区":
-                for project_ele in  dir["children"]:
-                    if project_ele["name"] == old_project.name:
-                        new_dir = copy.deepcopy(project_ele)
-                        break
-
-        # 更新节点
-        for file in new_dir:
-            file["file_id"] = self.resource[file["file_id"]]
-            file["encryption"] = self.resource[file["encryption"]]
-
-        for dir in dir_list:
-            if dir["name"] == "项目文档区":
-                dir["children"].append(new_dir)
-        team.file_system = dumps(tree,ensure_ascii=False)
-        team.save()
-
-        res = {
-            'code': 1001,
-            'msg': '复制成功',
-            'data': data
-        }
-        return Response(res)
+        except Exception as e:
+            print(e)
+            return Response({'code': 1002, 'msg': '复制失败', 'data': None})
 
 
 class ProjectStarListAPIView(APIView):
@@ -493,30 +501,35 @@ class PrototypeListAPIView(SubListAPIView):
         return Response(res)
 
     def post(self, request):
-        serializer = PrototypeModelSerializer(data=request.data)
-        if serializer.is_valid():
-            if not self.validate(serializer):
-                res = {'code': 1003, 'msg': '命名重复', 'data': serializer.data}
+        try:
+            serializer = PrototypeModelSerializer(data=request.data)
+            if serializer.is_valid():
+                if not self.validate(serializer):
+                    res = {'code': 1003, 'msg': '命名重复', 'data': serializer.data}
+                else:
+                    serializer.save()
+                    # 加密
+                    obj = Prototype.objects.get(id=serializer.data['id'])
+                    obj.encryption = str(des_encrypt(str(obj.id)))[2:-1]
+                    # 设置模板内容
+                    template = request.data.get('template')
+                    if template is not None and template != "" and template > 0:
+                        try:
+                            template = prototype_template_choices[template]
+                            file_path = os.path.join(template_path, prototype_template, template + ".json")
+                            with open(file_path) as file:
+                                obj.components = file.read()
+                        except Exception as e:
+                            print(e)
+                    obj.save()
+                    serializer = PrototypeModelSerializer(obj)
+                    res = {'code': 1001, 'msg': '添加成功', 'data': serializer.data}
             else:
-                serializer.save()
-                # 加密
-                obj = Prototype.objects.get(id=serializer.data['id'])
-                obj.encryption = str(des_encrypt(str(obj.id)))[2:-1]
-                # 设置模板内容
-                template = request.data.get('template')
-                if template is not None and template > 0:
-                    try:
-                        file_path = os.path.join(template_path, prototype_template, template + ".json")
-                        with open(file_path) as file:
-                            obj.components = file.read()
-                    except Exception as e:
-                        print(e)
-                obj.save()
-                serializer = PrototypeModelSerializer(obj)
-                res = {'code': 1001, 'msg': '添加成功', 'data': serializer.data}
-        else:
-            res = {'code': 1002, 'msg': '添加失败', 'data': serializer.data}
-        return Response(res)
+                res = {'code': 1002, 'msg': '添加失败', 'data': serializer.data}
+            return Response(res)
+        except Exception as e:
+            print(e)
+            return Response({'code': 1002, 'msg': '添加失败', 'data': None})
 
 
 class PrototypeDetailAPIView(SubDetailAPIView):
@@ -724,6 +737,7 @@ class DocumentListAPIView(SubListAPIView):
                                     "isLeaf": True
                                 }
                                 project_ele["children"].append(new_file)
+                                
                 group.file_system = json.dumps(file_system, ensure_ascii=False)
                 group.save()
                 asyncio.run(send_to_ws(serializer.data.get('team_id'), file_system))
@@ -740,9 +754,6 @@ class DocumentListAPIView(SubListAPIView):
                 'data': serializer.data
             }
         return Response(res)
-
-    def patch(self, request):
-        pass
 
 
 class DocumentDetailAPIView(SubDetailAPIView):
@@ -779,8 +790,11 @@ class DocumentDetailAPIView(SubDetailAPIView):
 
 class DocumentDir(APIView):
     def post(self, request):
-        tree = loads(request.data.get('tree'))
+        group_id = request.data.get('group_id')
         target_id = int(request.data.get('dir_id'))
+
+        group = Groups.objects.get(id=group_id)
+        tree = loads(group.file_system)
 
         # 找到要查询的那个目录
         target_dir = None
@@ -808,6 +822,17 @@ class DocumentDir(APIView):
                     stack.append(node)
 
         return Response({'code': 1001, 'msg': '无人编辑', 'data': ''})
+
+
+class DocumentFile(APIView):
+    def post(self, request):
+        try:
+            document = Document.objects.get(id=request.data.get('file_id'))
+            if document.online_users > 0:
+                return Response({'code': 1002, 'msg': '文档正在被编辑', 'data': ''})
+            return Response({'code': 1001, 'msg': '无人编辑', 'data': ''})
+        except:
+            return Response({'code': 1003, 'msg': '文件不存在', 'data': ''})
 
 
 class DocumentInfoAPIView(APIView):
