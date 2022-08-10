@@ -8,9 +8,9 @@ email_config = {
 img_path = "/home/ubuntu/static_resources/files"
 img_url = "https://www.noietch.cn/resource/files"
 
-template_path = "/home/ubuntu/static_resources/templates"
-document_template = "/documents"
-prototype_template = "/prototypes"
+template_path = "/home/ubuntu/static_resources/templates/"
+document_template = "documents/"
+prototype_template = "prototypes/"
 document_template_choices = ['无模板', '安装维护手册', '可行性分析文档', '软件测试报告', '软件实施方案', '软件测试计划', '需求规格说明书']
 
 

@@ -598,13 +598,35 @@ class PrototypeUserAPIView(APIView):
 
 
 class UMLListAPIView(SubListAPIView):
+    authentication_classes = []
     model = UML
     serializer = UMLModelSerializer
 
 
 class UMLDetailAPIView(SubDetailAPIView):
+    authentication_classes = []
     model = UML
     serializer = UMLModelSerializer
+
+
+class UMLInfoAPIView(APIView):
+    authentication_classes = []
+    def post(self, request):
+        try:
+            obj = UML.objects.get(id=request.data.get('id'))
+        except UML.DoesNotExist:
+            return Response({
+                'code': 1002,
+                'msg': '对象不存在',
+                'data': None
+            })
+        serializer = UMLModelSerializer(obj)
+        res = {
+            'code': 1001,
+            'msg': '查询成功',
+            'data': serializer.data
+        }
+        return Response(res)
 
 
 class DocumentListAPIView(SubListAPIView):
@@ -632,7 +654,7 @@ class DocumentListAPIView(SubListAPIView):
                 if template is not None and template > 0:
                     try:
                         template = document_template_choices[template]
-                        file_path = os.path.join(template_path, template + ".txt")
+                        file_path = os.path.join(template_path, document_template, template + ".txt")
                         with open(file_path) as file:
                             obj.content = file.read()
                             obj.cow = 1
