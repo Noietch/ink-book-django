@@ -18,8 +18,16 @@ default_file_system = {'name': '文档中心', 'id': 1, 'isProject': False, 'isL
 
 
 if __name__ == '__main__':
-    dir_list = default_file_system["children"]
-    for dir in dir_list:
-        if dir["name"] == "项目文档区":
-            print(dir["children"])
-
+    import json
+    with open("tree.txt",encoding="utf-8") as f:
+        tree = json.loads(f.read())
+        stack = [tree]
+        while len(stack) > 0:
+            cur_node = stack.pop()
+            if cur_node["isLeaf"] == True:
+                print(cur_node)
+            else:
+                print(cur_node["id"])
+                print(type(cur_node["id"]))
+                for node in cur_node["children"]:
+                    stack.append(node)

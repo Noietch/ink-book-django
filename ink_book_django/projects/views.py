@@ -238,7 +238,7 @@ class ProjectListAPIView(ListAPIView):
     serializer = ProjectModelSerializer
 
     def post(self, request):
-        serializer = ProjectModelSerializer(data=request.data)      
+        serializer = ProjectModelSerializer(data=request.data)
 
         if serializer.is_valid():
             if not self.validate(serializer):
@@ -253,7 +253,7 @@ class ProjectListAPIView(ListAPIView):
                 if dir["name"] == "项目文档区":
                     new_dir = {
                         "name": serializer.data.get('name'),
-                        "id": int(time.time()),
+                        "id": int(time.time()*1000),
                         "isLeaf": False,
                         "isProject": True,
                         "dragDisabled": True,
@@ -539,6 +539,7 @@ class PrototypeDetailAPIView(SubDetailAPIView):
 
 class PrototypeByProjectAPIView(APIView):
     authentication_classes = []
+
     def post(self, request, pk):
         objects1 = Prototype.objects.filter(project_id=pk, is_deleted=False)
         serializer1 = PrototypeModelSerializer(objects1, many=True)
@@ -611,6 +612,7 @@ class UMLDetailAPIView(SubDetailAPIView):
 
 class UMLInfoAPIView(APIView):
     authentication_classes = []
+
     def post(self, request):
         try:
             obj = UML.objects.get(id=request.data.get('id'))
@@ -676,7 +678,7 @@ class DocumentListAPIView(SubListAPIView):
                             if project_ele["name"] == project.name:
                                 new_file = {
                                     "name": obj.name,
-                                    "id": int(time.time()),
+                                    "id": int(time.time()*1000),
                                     "file_id": obj.id,
                                     "encryption": str(obj.encryption),
                                     "dragDisabled": True,
@@ -725,6 +727,50 @@ class DocumentDetailAPIView(SubDetailAPIView):
         except:
             return True
         return not self.model.objects.filter(Q(team_id=team_id) & Q(project_id=project_id) & Q(name=name)).exists()
+
+    def delete(self, request, pk):
+        try:
+            document = Document.objects.get(pk=pk)
+            if document.online_users != 0:
+                return Response({'code': 1002, 'msg': '文档正在被编辑', 'data': ''})
+            document.delete()
+            return Response({'code': 1001, 'msg': '删除成功', 'data': ''})
+        except Exception as e:
+            print(e)
+            return Response({'code': 1003, 'msg': '文档不存在', 'data': ''})
+
+
+class DocumentDir(APIView):
+    def post(self, request):
+        tree = loads(request.data.get('tree'))
+        target_id = int(request.data.get('dir_id'))
+
+        # 找到要查询的那个目录
+        target_dir = None
+        stack = [tree]
+        while len(stack) > 0:
+            cur_node = stack.pop()
+            if cur_node["isLeaf"] == False:
+                if cur_node["id"] == target_id:
+                    target_dir = cur_node
+                    break
+                for node in cur_node["children"]:
+                    stack.append(node)
+
+        # 查询是否有文件在编辑
+        stack = [target_dir]
+        while len(stack) > 0:
+            cur_node = stack.pop()
+            if cur_node["isLeaf"] == True:
+                file_id = int(cur_node["file_id"])
+                document = Document.objects.get(pk=file_id)
+                if document.online_users > 0:
+                    return Response({'code': 1002, 'msg': '文件夹中文档正在被编辑', 'data': ''})
+            else:
+                for node in cur_node["children"]:
+                    stack.append(node)
+
+        return Response({'code': 1001, 'msg': '无人编辑', 'data': ''})
 
 
 class DocumentInfoAPIView(APIView):
@@ -775,7 +821,7 @@ class FileConvertor(APIView):
 
         if form == "pdf":
             try:
-                
+
                 full_name = filename + str(time.time()) + '.pdf'
                 path = os.path.join(img_path, full_name)
                 pdfkit.from_string(content, path)
@@ -783,7 +829,7 @@ class FileConvertor(APIView):
             except Exception as e:
                 print("PDFConvertor:", e)
                 return Response({"code": 1002, "msg": "导出失败", "data": ''})
-        
+
         if form == "md":
             try:
                 filename = request.data.get('name')
@@ -799,7 +845,7 @@ class FileConvertor(APIView):
             except Exception as e:
                 print("MDConvertor:", e)
                 return Response({"code": 1002, "msg": "导出失败", "data": ''})
-        
+
         if form == "docx":
             try:
                 filename = request.data.get('name')
@@ -817,7 +863,7 @@ class FileConvertor(APIView):
             except Exception as e:
                 print("WordConvertor:", e)
                 return Response({"code": 1002, "msg": "导出失败", "data": ''})
-        
+
         return Response({"code": 1002, "msg": "导出失败", "data": ''})
 
 

@@ -1,58 +1,59 @@
 {
-  "id": 0,
-  "isLeaf": false,
-  "name": "root",
-  "children": [
-    {
-      "id": 0,
-      "isLeaf": false,
-      "name": "root",
-      "pid": 0,
-      "children": [
+    "name": "文档中心",
+    "id": 1,
+    "isProject": false,
+    "isLeaf": false,
+    "dragDisabled": true,
+    "addTreeNodeDisabled": false,
+    "addLeafNodeDisabled": false,
+    "editNodeDisabled": true,
+    "delNodeDisabled": true,
+    "children": [
         {
-          "id": 1,
-          "isLeaf": false,
-          "name": "文档中心",
-          "pid": 0,
-          "children": [
-            {
-              "id": 2,
-              "isLeaf": false,
-              "name": "部门介绍",
-              "pid": 1
-            },
-            {
-              "id": 5,
-              "isLeaf": false,
-              "name": "项目文档区",
-              "pid": 1,
-              "children": [
+            "name": "项目文档区",
+            "id": 2,
+            "isLeaf": false,
+            "isProject": false,
+            "dragDisabled": true,
+            "addTreeNodeDisabled": true,
+            "addLeafNodeDisabled": true,
+            "editNodeDisabled": true,
+            "delNodeDisabled": true,
+            "children": [
                 {
-                  "id": 6,
-                  "isLeaf": false,
-                  "name": "项目1",
-                  "pid": 5,
-                  "children": [
-                    {
-                      "id": 7,
-                      "isLeaf": true,
-                      "name": "需求建模文档.md",
-                      "pid": 6,
-                      "test": 666
-                    }
-                  ]
+                    "name": "东成西就1",
+                    "id": 1660118309,
+                    "isLeaf": false,
+                    "isProject": true,
+                    "dragDisabled": true,
+                    "addTreeNodeDisabled": true,
+                    "addLeafNodeDisabled": false,
+                    "editNodeDisabled": true,
+                    "delNodeDisabled": true,
+                    "children": [
+                        {
+                            "name": "新建文件",
+                            "id": 1660118358,
+                            "file_id": 440,
+                            "encryption": "b'7d2512032e0453c8114be2a400ae72a8'",
+                            "dragDisabled": true,
+                            "editNodeDisabled": true,
+                            "delNodeDisabled": true,
+                            "isLeaf": true
+                        }
+                    ]
                 }
-              ]
-            },
-            {
-              "id": 11,
-              "isLeaf": true,
-              "name": "团队介绍.md",
-              "pid": 1
-            }
-          ]
+            ]
+        },
+        {
+            "name": "Readme.md",
+            "id": 3,
+            "dragDisabled": true,
+            "editNodeDisabled": false,
+            "delNodeDisabled": false,
+            "isLeaf": true,
+            "file_id": 439,
+            "encryption": "b'1dfeb56ffc502e9fa33665e9e99e961c'"
         }
-      ]
-    }
-  ]
+    ]
 }

@@ -250,7 +250,7 @@ class GroupTreeFile(APIView):
                         if project["name"] == project_name:
                             new_file = {
                                 "name": file_name,
-                                "id": int(time.time()),
+                                "id": int(time.time()*1000),
                                 "file_id": doc.id,
                                 "encryption":str(doc.encryption),
                                 "dragDisabled": True,
