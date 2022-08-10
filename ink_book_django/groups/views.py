@@ -195,7 +195,7 @@ class FileSystemDetail(APIView):
             pk = request.data.get('group_id')
             group = Groups.objects.get(pk=pk)
             tree = request.data.get('tree')
-            
+
             group.file_system = dumps(tree)
             group.save()
 

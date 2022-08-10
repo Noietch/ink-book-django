@@ -54,6 +54,7 @@ class UML(models.Model):
     avatar = models.TextField(default='https://dn-st.teambition.net/teambition/images/logo5.a07a0ef0.jpg')
     width = models.IntegerField(default=1440)
     height = models.IntegerField(default=1024)
+    content = models.TextField(null=True)
 
     class Meta:
         verbose_name = "UML图"
