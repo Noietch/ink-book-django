@@ -445,6 +445,8 @@ class ProjectCopyAPIView(APIView):
             team.file_system = dumps(tree,ensure_ascii=False)
             team.save()
 
+            asyncio.run(send_to_ws(old_project.team_id, file_system))
+
             res = {
                 'code': 1001,
                 'msg': '复制成功',
@@ -955,4 +957,3 @@ class ImageUpload(APIView):
         except Exception as e:
             print("ImageUpload:", e)
             return Response({"code": 1002, "msg": "导出失败", "data": ''})
-            
