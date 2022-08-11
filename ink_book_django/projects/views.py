@@ -862,6 +862,26 @@ class DocumentDetailAPIView(SubDetailAPIView):
     def delete(self, request, pk):
         try:
             document = Document.objects.get(pk=pk)
+
+            project = Project.objects.get(id=document.project_id)
+            groups = Groups.objects.get(id=document.team_id)
+
+            tree = loads(groups.file_system)
+            for dir in tree["children"]:
+                if dir["name"] == "文档中心":
+                    for pro in dir["children"]:
+                        if pro["name"] == project.name:
+                            to_del = None
+                            for file in pro["children"]:
+                                if file["file_id"] == document.id:
+                                    to_del = file
+                                    break
+                            pro["children"].remove(to_del)
+            groups.file_system = dumps(tree,ensure_ascii=False)
+            groups.save()
+
+            asyncio.run(send_to_ws(document.team_id, tree))
+
             if document.online_users != 0:
                 return Response({'code': 1002, 'msg': '文档正在被编辑', 'data': ''})
             document.delete()
