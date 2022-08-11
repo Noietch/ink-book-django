@@ -212,6 +212,7 @@ class FileSystemTree(APIView):
             group = Groups.objects.get(pk=request.data.get('group_id'))
             return Response({'code': 1001, 'msg': '查询成功', 'data': loads(group.file_system)})
         except Exception as e:
+            print(request.data.get('group_id'))
             print(e)
             return Response({'code': 1002, 'msg': '团队不存在', 'data': ''})
 
