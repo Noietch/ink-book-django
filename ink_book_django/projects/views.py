@@ -332,6 +332,8 @@ class ProjectDetailAPIView(DetailAPIView):
             groups.file_system = dumps(tree,ensure_ascii=False)
             groups.save()
 
+            asyncio.run(send_to_ws(team_id, tree))
+
             obj.delete()
             for star in StarProject.objects.filter(project_id=pk):
                 star.delete()
@@ -372,6 +374,8 @@ class ProjectRename(APIView):
                             
             groups.file_system = dumps(tree, ensure_ascii=False)
             groups.save()
+
+            asyncio.run(send_to_ws(project.team_id, tree))
 
             project.name = new_name
             project.save()
